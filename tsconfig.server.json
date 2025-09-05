@@ -1,0 +1,18 @@
+{
+	"compilerOptions": {
+		"esModuleInterop": true,
+		"target": "esnext",
+		"moduleResolution": "node",
+		"forceConsistentCasingInFileNames": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"noImplicitAny": false,
+		"sourceMap": true,
+		"paths": {
+			"$lib": ["./src/lib"],
+			"$lib/*": ["./src/lib/*"]
+		},
+		"outDir": "dist"
+	},
+	"include": ["src/server.ts", "src/server.socket.ts"]
+}

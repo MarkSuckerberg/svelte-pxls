@@ -2,15 +2,15 @@ export const WIDTH = 500;
 export const HEIGHT = 500;
 
 export type ServerToClientEvents = {
-	pixelUpdate: (update: PixelUpdate[]) => void;
+	pixelUpdate: (update: Pixel[]) => void;
 	connection: (src: string) => void;
 	heartbeat: (time: number) => void;
 	users: (users: SocketData[]) => void;
-	map: (map: ArrayBufferLike) => void;
+	map: (map: Uint8Array, width: number, height: number) => void;
 };
 
 export type ClientToServerEvents = {
-	place: (pixels: PixelUpdate[]) => void;
+	place: (pixels: Pixel[], ack: (pixels: Pixel[]) => void) => void;
 };
 
 export type InterServerEvents = never;
@@ -19,11 +19,19 @@ export type SocketData = {
 	name: string;
 };
 
-export type PixelUpdate = {
+export type Pixel = {
 	x: number;
 	y: number;
 	color: number;
 };
+
+export type PixelLike =
+	| Pixel
+	| {
+			pos: { x: number; y: number };
+			color: number;
+	  }
+	| { pos: [number, number]; color: number };
 
 export function colorToRGB(index: number) {
 	const colorValue = colors[index];

@@ -1,9 +1,9 @@
 import devtoolsJson from 'vite-plugin-devtools-json';
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig, type ViteDevServer } from 'vite';
-import { attach_sockets } from './src/lib/socket.server';
+import { defineConfig, type Plugin, type ViteDevServer } from 'vite';
+import { attach_sockets } from './src/server.socket';
 
-const socketIo = {
+const socketIo: Plugin = {
 	name: 'socket.io',
 	configureServer(server: ViteDevServer) {
 		if (!server.httpServer) {
@@ -19,5 +19,5 @@ const socketIo = {
 };
 
 export default defineConfig({
-	plugins: [sveltekit(), devtoolsJson(), socketIo]
+	plugins: [sveltekit(), socketIo, devtoolsJson()]
 });
