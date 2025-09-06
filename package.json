@@ -17,7 +17,12 @@
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
 		"@eslint/js": "^9.18.0",
+		"@skeletonlabs/skeleton": "^3.2.0",
+		"@skeletonlabs/skeleton-svelte": "^1.5.1",
 		"@sveltejs/vite-plugin-svelte": "^6.0.0",
+		"@tailwindcss/forms": "^0.5.9",
+		"@tailwindcss/typography": "^0.5.15",
+		"@tailwindcss/vite": "^4.0.0",
 		"@types/express": "^5.0.3",
 		"@types/ws": "^8.18.1",
 		"eslint": "^9.18.0",
@@ -26,8 +31,10 @@
 		"globals": "^16.0.0",
 		"prettier": "^3.4.2",
 		"prettier-plugin-svelte": "^3.3.3",
+		"prettier-plugin-tailwindcss": "^0.6.11",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
+		"tailwindcss": "^4.0.0",
 		"typescript": "^5.0.0",
 		"typescript-eslint": "^8.20.0",
 		"vite": "^7.0.4",
@@ -42,7 +49,8 @@
 		}
 	},
 	"dependencies": {
-		"@sveltejs/adapter-node": "https://pkg.pr.new/sveltejs/kit/@sveltejs/adapter-node@12973",
+		"@lucide/svelte": "^0.542.0",
+		"@sveltejs/adapter-node": "^5.3.1",
 		"@sveltejs/kit": "^2.37.0",
 		"express": "^5.1.0",
 		"interactjs": "^1.10.27",

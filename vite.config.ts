@@ -1,6 +1,9 @@
+import tailwindcss from '@tailwindcss/vite';
 import devtoolsJson from 'vite-plugin-devtools-json';
 import { sveltekit } from '@sveltejs/kit/vite';
+
 import { defineConfig, type Plugin, type ViteDevServer } from 'vite';
+
 import { attach_sockets } from './src/server.socket';
 
 const socketIo: Plugin = {
@@ -19,5 +22,5 @@ const socketIo: Plugin = {
 };
 
 export default defineConfig({
-	plugins: [sveltekit(), socketIo, devtoolsJson()]
+	plugins: [tailwindcss(), sveltekit(), socketIo, devtoolsJson()]
 });

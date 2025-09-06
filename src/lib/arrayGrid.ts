@@ -1,8 +1,4 @@
 import type { Pixel } from './socket';
-import { readFile, writeFile, copyFile } from 'fs/promises';
-
-const VERSION = 1;
-const HEADER_SIZE = 6;
 
 //Why did I do all this though
 export class Int2DArrayHelper {
@@ -65,54 +61,6 @@ export class ArrayGrid {
 		this.grid = new Int2DArrayHelper(this.array, width, height);
 	}
 
-	public static async fromFile(file: string) {
-		return readFile(file)
-			.then(async (fileData) => {
-				try {
-					const headerSize = fileData.readUint8(0);
-					const dataSize = fileData.length - headerSize;
-					const version = fileData.readUint8(1);
-					const width = fileData.readUint16BE(2);
-					const height = fileData.readUint16BE(4);
-
-					if (version != VERSION) {
-						throw new Error('Invalid version!');
-					}
-
-					if (dataSize !== height * width) {
-						throw new Error('Map data invalid size!');
-					}
-
-					return new ArrayGrid(
-						width,
-						height,
-						new Uint8Array(fileData.buffer, headerSize, width * height)
-					);
-				} catch (error) {
-					await copyFile(file, `${file}.bak`);
-					console.error('Error reading map save. File backed up.', error);
-				}
-			})
-			.catch(() => {
-				// File couldn't be read to begin with
-				return null;
-			});
-	}
-
-	public async toFile(file: string) {
-		const header = Buffer.allocUnsafe(HEADER_SIZE);
-		header.writeUInt8(HEADER_SIZE, 0); // 1
-		header.writeUInt8(VERSION, 1); // 2
-		header.writeUInt16BE(this.height, 2); // 3-4
-		header.writeUInt16BE(this.width, 4); // 5-6
-
-		const data = new Uint8Array(this.width * this.height + HEADER_SIZE);
-
-		data.set(header);
-		data.set(this.array, HEADER_SIZE);
-
-		await writeFile(file, data);
-	}
 
 	public set(pixel: Pixel) {
 		if (0 > pixel.x || pixel.x > this.width || 0 > pixel.y || pixel.y > this.height) {

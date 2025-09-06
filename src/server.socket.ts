@@ -8,6 +8,7 @@ import {
 } from './lib/socket.js';
 
 import { ArrayGrid } from './lib/arrayGrid.js';
+import { fromFile, toFile } from './lib/arrayGrid.server.js';
 
 import { Server as ioServer } from 'socket.io';
 import type { Server } from 'http';
@@ -19,7 +20,7 @@ export async function attach_sockets(
 ) {
 	const users: Map<string, SocketData> = new Map();
 
-	const data = (await ArrayGrid.fromFile('board2.dat')) || new ArrayGrid(WIDTH, HEIGHT);
+	const data = (await fromFile('board2.dat')) || new ArrayGrid(WIDTH, HEIGHT);
 
 	const io = new ioServer<
 		ClientToServerEvents,
@@ -45,7 +46,7 @@ export async function attach_sockets(
 			socket.broadcast.emit('pixelUpdate', pixels);
 			ack(pixels);
 
-			data.toFile('board2.dat');
+			toFile(data, 'board2.dat');
 		});
 
 		socket.on('disconnect', () => {
@@ -58,7 +59,7 @@ export async function attach_sockets(
 
 			io.emit('users', userArray);
 
-			data.toFile('board2.dat');
+			toFile(data, 'board2.dat');
 		});
 	});
 }

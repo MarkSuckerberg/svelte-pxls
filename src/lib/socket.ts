@@ -1,5 +1,6 @@
 export const WIDTH = 500;
 export const HEIGHT = 500;
+import colorFile from './colors.json';
 
 export type ServerToClientEvents = {
 	pixelUpdate: (update: Pixel[]) => void;
@@ -43,10 +44,23 @@ export function colorToRGB(index: number) {
 	return { red, green, blue, alpha };
 }
 
-export const colors: number[] = [
-	0xccccccff, 0xffffffff, 0x000000ff, 0xff0000ff, 0x00ff00ff, 0x0000ffff
-];
+export const colors = colorFile.map(({ name, value }) => {
+	return Number.parseInt(value, 16);
+});
 
-export const colorsBackwards: number[] = [
-	0xffcccccc, 0xffffffff, 0xff000000, 0xff0000ff, 0x0ff00ff00, 0xffff0000
-];
+export const colorNames = colorFile.map(({ name, value }) => name);
+
+export const colorsBackwards = colorFile.map(({ name, value }) => {
+	//TODO: get some help
+	return Number.parseInt(
+		value
+			.split(/([0-9a-fA-F]{2})/)
+			.reverse()
+			.join(''),
+		16
+	);
+});
+
+export function get1DPosition2D(x: number, y: number, width: number, height: number) {
+	return (x % width) + y * height;
+}

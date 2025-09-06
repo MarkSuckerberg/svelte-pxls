@@ -1,0 +1,237 @@
+[
+	{
+        "name": "Map BG",
+        "value": "f8f4f0ff",
+		"background": true
+    },
+    {
+        "name": "Map Water",
+        "value": "9ebdffff",
+		"background": true
+    },
+    {
+        "name": "Map Trees",
+        "value": "e3f0d4ff",
+		"background": true
+    },
+    {
+        "name": "White",
+        "value": "ffffffff"
+    },
+    {
+        "name": "Light Grey",
+        "value": "d2d2d2ff"
+    },
+    {
+        "name": "Medium Grey",
+        "value": "aaaaaaff"
+    },
+    {
+        "name": "Grey",
+        "value": "787878ff"
+    },
+    {
+        "name": "Dark Grey",
+        "value": "3c3c3cff"
+    },
+    {
+        "name": "Black",
+        "value": "000000ff"
+    },
+    {
+        "name": "Deep Red",
+        "value": "600318ff"
+    },
+    {
+        "name": "Dark Red",
+        "value": "a50e1eff"
+    },
+    {
+        "name": "Red",
+        "value": "ed1c24ff"
+    },
+    {
+        "name": "Light Red",
+        "value": "fa8072ff"
+    },
+    {
+        "name": "Dark Orange",
+        "value": "e45c1aff"
+    },
+    {
+        "name": "Orange",
+        "value": "ff7f27ff"
+    },
+    {
+        "name": "Gold",
+        "value": "f6aa09ff"
+    },
+    {
+        "name": "Yellow",
+        "value": "f9dd3bff"
+    },
+    {
+        "name": "Light Yellow",
+        "value": "fffabcff"
+    },
+    {
+        "name": "Dark Olive",
+        "value": "4a6b3aff"
+    },
+    {
+        "name": "Olive",
+        "value": "5a944aff"
+    },
+    {
+        "name": "Light Olive",
+        "value": "84c573ff"
+    },
+    {
+        "name": "Dark Green",
+        "value": "0ab968ff"
+    },
+    {
+        "name": "Green",
+        "value": "11e67bff"
+    },
+    {
+        "name": "Light Green",
+        "value": "88ff5eff"
+    },
+    {
+        "name": "Dark Teal",
+        "value": "0e816eff"
+    },
+    {
+        "name": "Teal",
+        "value": "0caea6ff"
+    },
+    {
+        "name": "Light Teal",
+        "value": "13e1beff"
+    },
+    {
+        "name": "Dark Cyan",
+        "value": "10799fff"
+    },
+    {
+        "name": "Cyan",
+        "value": "60f7f2ff"
+    },
+    {
+        "name": "Light Cyan",
+        "value": "bbfaf2ff"
+    },
+    {
+        "name": "Dark Blue",
+        "value": "27509eff"
+    },
+    {
+        "name": "Blue",
+        "value": "4193e4ff"
+    },
+    {
+        "name": "Light Blue",
+        "value": "7dc7ffff"
+    },
+    {
+        "name": "Dark Indigo",
+        "value": "4d31b8ff"
+    },
+    {
+        "name": "Indigo",
+        "value": "6b50f6ff"
+    },
+    {
+        "name": "Light Indigo",
+        "value": "99b1fbff"
+    },
+    {
+        "name": "Dark Slate Blue",
+        "value": "4a4284ff"
+    },
+    {
+        "name": "Slate Blue",
+        "value": "7a71c4ff"
+    },
+    {
+        "name": "Light Slate Blue",
+        "value": "b5aef1ff"
+    },
+    {
+        "name": "Dark Purple",
+        "value": "780c99ff"
+    },
+    {
+        "name": "Purple",
+        "value": "aa38b9ff"
+    },
+    {
+        "name": "Light Purple",
+        "value": "e09ff9ff"
+    },
+    {
+        "name": "Dark Pink",
+        "value": "cb027aff"
+    },
+    {
+        "name": "Pink",
+        "value": "ec1f80ff"
+    },
+    {
+        "name": "Light Pink",
+        "value": "f38da9ff"
+    },
+    {
+        "name": "Dark Brown",
+        "value": "684634ff"
+    },
+    {
+        "name": "Brown",
+        "value": "95682aff"
+    },
+    {
+        "name": "Light Brown",
+        "value": "dba463ff"
+    },
+    {
+        "name": "Tan",
+        "value": "9c846bff"
+    },
+    {
+        "name": "Dark Beige",
+        "value": "d18051ff"
+    },
+    {
+        "name": "Beige",
+        "value": "f8b277ff"
+    },
+    {
+        "name": "Light Beige",
+        "value": "ffc5a5ff"
+    },
+    {
+        "name": "Dark Slate",
+        "value": "333941ff"
+    },
+    {
+        "name": "Slate",
+        "value": "6d758dff"
+    },
+    {
+        "name": "Light Slate",
+        "value": "b3b9d1ff"
+    },
+    {
+        "name": "Dark Goldenrod",
+        "value": "9c8431ff"
+    },
+    {
+        "name": "Goldenrod",
+        "value": "c5ad31ff"
+    },
+    {
+        "name": "Light Goldenrod",
+        "value": "e8d45fff"
+    }
+]
