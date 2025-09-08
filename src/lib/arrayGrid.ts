@@ -1,4 +1,4 @@
-import type { Pixel } from './socket';
+import { get1DPosition2D, type Pixel } from './socket';
 
 //Why did I do all this though
 export class Int2DArrayHelper {
@@ -61,22 +61,22 @@ export class ArrayGrid {
 		this.grid = new Int2DArrayHelper(this.array, width, height);
 	}
 
-
-	public set(pixel: Pixel) {
-		if (0 > pixel.x || pixel.x > this.width || 0 > pixel.y || pixel.y > this.height) {
+	public set({ x, y, color }: Pixel) {
+		if (0 > x || x > this.width || 0 > y || y > this.height) {
 			throw Error('Invalid pixel position!');
 		}
-		this.grid[pixel.y][pixel.x] = pixel.color;
+		//this.grid[y][x] = color;
 
-		//const position = (pixel.x % this.width) + pixel.y * this.width;
+		const position = get1DPosition2D(x, y, this.width, this.height);
 
-		//this.array[position] = pixel.color;
+		this.array[position] = color;
 	}
 
 	public get(x: number, y: number) {
 		if (0 > x || x > this.width || 0 > y || y > this.height) {
 			throw Error('Invalid pixel position!');
 		}
+		//return this.grid[y][x]
 
 		const position = (x % this.width) + y * this.width;
 

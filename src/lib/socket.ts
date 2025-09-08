@@ -2,6 +2,11 @@ export const WIDTH = 500;
 export const HEIGHT = 500;
 import colorFile from './colors.json';
 
+export interface Coords {
+	x: number,
+	y: number
+}
+
 export type ServerToClientEvents = {
 	pixelUpdate: (update: Pixel[]) => void;
 	connection: (src: string) => void;
