@@ -1,17 +1,17 @@
 <script lang="ts">
 	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
-	import EditMenu from '$lib/EditMenu.svelte';
+	import EditMenu from '$lib/components/EditMenu.svelte';
 	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
-	import Reticle from '$lib/Reticle.svelte';
+	import Reticle from '$lib/components/Reticle.svelte';
 	import {
 		DEFAULT_COLOR_INDEX,
 		type ClientToServerEvents,
 		type Coords,
 		type ServerToClientEvents
-	} from '$lib/socket';
+	} from '$lib/types';
 	import { toaster } from '$lib/toaster';
-	import ViewHud from '$lib/ViewHUD.svelte';
+	import ViewHud from '$lib/components/ViewHUD.svelte';
 	import type { GestureEvent } from '@interactjs/actions/gesture/plugin';
 	import type { SignalArgs } from '@interactjs/core/scope';
 	import interact from 'interactjs';

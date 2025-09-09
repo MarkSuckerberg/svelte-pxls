@@ -1,4 +1,4 @@
-import { DEFAULT_COLOR_INDEX } from '$lib/socket';
+import { DEFAULT_COLOR_INDEX } from '$lib/types';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = ({ url, data }) => {

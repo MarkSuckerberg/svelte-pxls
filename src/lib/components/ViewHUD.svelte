@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Brush, ClipboardCopy, X as Exit } from '@lucide/svelte';
-	import type { ArrayGrid } from './arrayGrid';
-	import { colorNames, colors, type Coords } from './socket';
+	import type { ArrayGrid } from '../arrayGrid';
+	import { colorNames, colors, type Coords } from '../types';
 
 	let {
 		selectedPixel,

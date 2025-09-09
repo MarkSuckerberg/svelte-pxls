@@ -1,16 +1,18 @@
 <script lang="ts">
-	import Grid from '$lib/Grid.svelte';
-	import PageController from '$lib/PageController.svelte';
+	import Grid from '$lib/components/Grid.svelte';
+	import PageController from '$lib/components/PageController.svelte';
 	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
 	import {
 		type ClientToServerEvents,
 		type Dimensions,
 		type Pixel,
 		type ServerToClientEvents
-	} from '$lib/socket';
+	} from '$lib/types';
 	import { io, type Socket } from 'socket.io-client';
 	import { onMount } from 'svelte';
 	import type { PageProps } from './$types';
+	import { SignIn, SignOut } from '@auth/sveltekit/components';
+	import { page } from '$app/state';
 
 	let { data }: PageProps = $props();
 	let pan = $state(data.pan);
@@ -39,10 +41,6 @@
 		}
 
 		socket = getSocket;
-
-		socket.compress(true).once('map', (rawMap, size) => {
-			//startCanvas(size, rawMap);
-		});
 	}
 
 	function startCanvas(dimensions: Dimensions, array?: Uint8Array) {
@@ -74,6 +72,30 @@
 		>
 		</canvas>
 	</div>
+</div>
+
+<div class="absolute z-10">
+	{#if page.data.session}
+		<span class="signedInText">
+			<p>Signed in as:</p>
+			<ul>
+				<li>
+					Username: {page.data.session.user?.name}
+				</li>
+				<li>
+					Email: {page.data.session.user?.email}
+				</li>
+			</ul>
+		</span>
+		<SignOut>
+			<div slot="submitButton" class="buttonPrimary">Sign out</div>
+		</SignOut>
+	{:else}
+		<span>You are not signed in</span>
+		<SignIn>
+			<div slot="submitButton" class="buttonPrimary">Sign in</div>
+		</SignIn>
+	{/if}
 </div>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->

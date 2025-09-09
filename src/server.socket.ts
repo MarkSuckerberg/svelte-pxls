@@ -5,15 +5,17 @@ import {
 	type SocketData,
 	HEIGHT,
 	WIDTH
-} from './lib/socket.js';
-
+} from './lib/types.js';
+import { Auth, createActionURL } from '@auth/core';
 import { ArrayGrid } from './lib/arrayGrid.js';
 import { fromFile, toFile } from './lib/arrayGrid.server.js';
 
 import type { Server } from 'http';
 import type { Http2SecureServer, Http2Server } from 'http2';
 import type { Server as HTTPSServer } from 'https';
-import { Server as ioServer } from 'socket.io';
+import { Server as SocketServer } from 'socket.io';
+import { authConfig } from './authConfig.server.js';
+import type { Session } from '@auth/sveltekit';
 
 export class PixelSocketServer {
 	public static async fromFile(
@@ -26,8 +28,8 @@ export class PixelSocketServer {
 	}
 
 	public users: Map<string, SocketData> = new Map();
-	public readonly data;
-	public readonly io: ioServer<
+	public readonly data: ArrayGrid;
+	public readonly io: SocketServer<
 		ClientToServerEvents,
 		ServerToClientEvents,
 		InterServerEvents,
@@ -38,7 +40,7 @@ export class PixelSocketServer {
 		data: ArrayGrid,
 		server: Server | HTTPSServer | Http2SecureServer | Http2Server
 	) {
-		this.io = new ioServer<
+		this.io = new SocketServer<
 			ClientToServerEvents,
 			ServerToClientEvents,
 			InterServerEvents,
@@ -47,12 +49,33 @@ export class PixelSocketServer {
 
 		this.data = data;
 
-		this.io.on('connection', (socket) => {
-			this.users.set(socket.id, { name: 'test' });
-			this.io
-				.compress(true)
-				.emit('map', data.array, { width: data.width, height: data.height });
+		this.io.use(async (socket, next) => {
+			const headers = new Headers();
 
+			socket.request.rawHeaders.forEach((element, index, array) => {
+				if (index % 2) {
+					const prev = array[index - 1];
+					headers.append(prev, element);
+				}
+			});
+
+			const req: RequestInit = {
+				...socket.request,
+				headers
+			};
+
+			const url = createActionURL('session', 'http', headers, process.env, authConfig);
+
+			const session = await Auth(new Request(url, req), authConfig);
+			if (session.ok) {
+				socket.data.session = (await session.json()) as Session | null;
+			}
+
+			next();
+		});
+
+		this.io.on('connection', (socket) => {
+			console.log(socket.data.session);
 			socket.on('place', (pixels, ack) => {
 				pixels.forEach((pixel, index) => {
 					try {

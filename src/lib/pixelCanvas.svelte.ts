@@ -7,7 +7,7 @@ import {
 	type Coords,
 	type Dimensions,
 	type Pixel
-} from './socket';
+} from './types';
 
 export class EditSet {
 	private edits: SvelteMap<number, Pixel>;

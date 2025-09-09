@@ -4,6 +4,7 @@ export const HEIGHT = 500;
 export const DEFAULT_COLOR_INDEX = 8;
 
 import colorFile from './colors.json';
+import type { Session } from '@auth/sveltekit';
 
 export interface Coords {
 	x: number;
@@ -30,7 +31,7 @@ export type ClientToServerEvents = {
 export type InterServerEvents = never;
 
 export type SocketData = {
-	name: string;
+	session: Session | null;
 };
 
 export type Pixel = {

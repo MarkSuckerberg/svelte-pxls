@@ -1,10 +1,16 @@
 <script lang="ts">
-	import { colors } from "./socket";
+	import { colors } from '../types';
 
-
-    let { reticlePosition, selectedColorIdx, scale }: { reticlePosition: {x: number, y: number} | undefined, selectedColorIdx: number, scale: number } = $props()
+	let {
+		reticlePosition,
+		selectedColorIdx,
+		scale
+	}: {
+		reticlePosition: { x: number; y: number } | undefined;
+		selectedColorIdx: number;
+		scale: number;
+	} = $props();
 </script>
-
 
 {#if reticlePosition}
 	<div

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Eraser, X as Exit, Send, Trash } from '@lucide/svelte';
-	import type { EditSet } from './pixelCanvas.svelte';
-	import { colorNames, colors } from './socket';
+	import type { EditSet } from '../pixelCanvas.svelte';
+	import { colorNames, colors } from '../types';
 
 	let {
 		selectedColorIdx = $bindable(),

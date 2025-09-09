@@ -25,7 +25,7 @@
 			"request": "launch",
 			"runtimeArgs": ["run-script", "dev"],
 			"runtimeExecutable": "pnpm",
-			"skipFiles": ["<node_internals>/**", "!**/node_modules/.vite-temp/**"],
+			"skipFiles": ["<node_internals>/**", "!**/<node_internals>/.vite-temp/**"],
 			"console": "integratedTerminal"
 		},
 		{
@@ -34,7 +34,7 @@
 			"request": "launch",
 			"runtimeArgs": ["run-script", "start"],
 			"runtimeExecutable": "pnpm",
-			"skipFiles": ["<node_internals>/**", "!**/node_modules/.vite-temp/**"],
+			"skipFiles": ["<node_internals>/**", "!**/<node_internals>/.vite-temp/**"],
 			"console": "integratedTerminal",
 			"preLaunchTask": "npm: build"
 		}

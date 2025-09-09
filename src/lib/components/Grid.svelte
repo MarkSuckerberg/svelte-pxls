@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { PixelCanvas } from './pixelCanvas.svelte';
-	import type { Coords } from './socket';
+	import type { PixelCanvas } from '../pixelCanvas.svelte';
+	import type { Coords } from '../types';
 
 	let { scale, pan, displayData }: { scale: number; pan: Coords; displayData: PixelCanvas } =
 		$props();

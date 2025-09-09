@@ -1,6 +1,7 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import devtoolsJson from 'vite-plugin-devtools-json';
+import 'dotenv/config';
 
 import { defineConfig, type Plugin, type PreviewServer, type ViteDevServer } from 'vite';
 

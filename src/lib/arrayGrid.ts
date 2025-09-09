@@ -1,4 +1,4 @@
-import { get1DPosition2D, type Dimensions, type Pixel } from './socket';
+import { get1DPosition2D, type Dimensions, type Pixel } from './types';
 
 //Why did I do all this though
 export class Int2DArrayHelper {

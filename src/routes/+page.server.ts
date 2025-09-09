@@ -1,4 +1,4 @@
-import type { Dimensions } from '$lib/socket';
+import type { Dimensions } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = ({}) => {
