@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Send, Trash, X as Exit, Eraser } from '@lucide/svelte';
-	import { colorNames, colors, type Pixel } from './socket';
+	import { Eraser, X as Exit, Send, Trash } from '@lucide/svelte';
 	import type { EditSet } from './pixelCanvas.svelte';
+	import { colorNames, colors } from './socket';
 
 	let {
 		selectedColorIdx = $bindable(),
@@ -32,6 +32,7 @@
 			class="m-1 btn h-12 flex-12 preset-filled-tertiary-500"
 			onclick={onSubmit}
 			aria-keyshortcuts="enter"
+			disabled={!edits.size}
 		>
 			<span>Send</span>
 			<Send />

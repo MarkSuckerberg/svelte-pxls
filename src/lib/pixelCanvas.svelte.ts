@@ -1,13 +1,20 @@
 import { SvelteMap } from 'svelte/reactivity';
-import type { ArrayGrid } from './arrayGrid';
-import { colorsBackwards, colorToRGB, get1DPosition2D, type Coords, type Pixel } from './socket';
+import { ArrayGrid } from './arrayGrid';
+import {
+	colorsBackwards,
+	colorToRGB,
+	get1DPosition2D,
+	type Coords,
+	type Dimensions,
+	type Pixel
+} from './socket';
 
 export class EditSet {
 	private edits: SvelteMap<number, Pixel>;
 	private readonly width: number;
 	private readonly height: number;
 
-	public constructor(width: number, height: number, edits: Pixel[] | undefined = undefined) {
+	public constructor({ width, height }: Dimensions, edits: Pixel[] | undefined = undefined) {
 		this.width = width;
 		this.height = height;
 
@@ -60,11 +67,13 @@ export class PixelCanvas {
 
 	public constructor(
 		canvas: HTMLCanvasElement,
-		width: number,
-		height: number,
-		array: ArrayGrid | undefined = undefined,
+		{ width, height }: Dimensions,
+		array: Uint8Array | undefined = undefined,
 		backgroundFill: number | undefined = undefined
 	) {
+		canvas.width = width;
+		canvas.height = height;
+
 		this.canvas = canvas;
 		const getContext = canvas.getContext('2d');
 
@@ -75,11 +84,12 @@ export class PixelCanvas {
 		this.context = getContext;
 		this.width = width;
 		this.height = height;
+		this._rect = $state(this.canvas.getBoundingClientRect());
 
 		if (array) {
-			this.array = array;
+			this.array = new ArrayGrid({ width, height }, array);
 
-			this.setData(array.array);
+			this.setData(array);
 		} else if (backgroundFill) {
 			const { red, green, blue, alpha } = colorToRGB(backgroundFill);
 			this.context.fillStyle = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
@@ -172,12 +182,14 @@ export class PixelEditCanvas extends PixelCanvas {
 
 	public constructor(
 		canvas: HTMLCanvasElement,
-		width: number,
-		height: number,
+		dimensions: Dimensions,
 		edits: Pixel[] | undefined = undefined
 	) {
-		super(canvas, width, height);
-		this.edits = new EditSet(width, height, edits);
+		super(canvas, dimensions);
+		this.edits = $state(new EditSet(dimensions, edits));
+		if (edits) {
+			this.setPixels(edits);
+		}
 	}
 
 	public deletePixel({ x, y }: Coords) {

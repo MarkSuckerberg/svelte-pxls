@@ -1,27 +1,32 @@
 <script lang="ts">
-	import { type ClientToServerEvents, type Coords, type ServerToClientEvents } from '$lib/socket';
-	import { onMount } from 'svelte';
-	import { type Socket } from 'socket.io-client';
-	import interact from 'interactjs';
-	import type { SignalArgs } from '@interactjs/core/scope';
-	import type { GestureEvent } from '@interactjs/actions/gesture/plugin';
 	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
-	import { SvelteURL } from 'svelte/reactivity';
-	import { toaster } from '$lib/toaster';
+	import EditMenu from '$lib/EditMenu.svelte';
 	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
 	import Reticle from '$lib/Reticle.svelte';
-	import EditMenu from '$lib/EditMenu.svelte';
+	import {
+		DEFAULT_COLOR_INDEX,
+		type ClientToServerEvents,
+		type Coords,
+		type ServerToClientEvents
+	} from '$lib/socket';
+	import { toaster } from '$lib/toaster';
 	import ViewHud from '$lib/ViewHUD.svelte';
+	import type { GestureEvent } from '@interactjs/actions/gesture/plugin';
+	import type { SignalArgs } from '@interactjs/core/scope';
+	import interact from 'interactjs';
+	import { type Socket } from 'socket.io-client';
+	import { SvelteURL } from 'svelte/reactivity';
 
 	let {
-		pan = $bindable(),
+		pan = $bindable({ x: 0, y: 0 }),
 		scale = $bindable(1),
-		editing = $bindable(),
+		editing = $bindable(false),
 		editData,
 		displayData,
 		socket,
-		container
+		container,
+		initialColor
 	}: {
 		pan: Coords;
 		scale: number;
@@ -30,9 +35,10 @@
 		displayData: PixelCanvas;
 		socket: Socket<ServerToClientEvents, ClientToServerEvents>;
 		container: HTMLDivElement;
+		initialColor: number;
 	} = $props();
 
-	let selectedColorIdx = $state(8);
+	let selectedColorIdx = $state(initialColor || DEFAULT_COLOR_INDEX);
 
 	let selectedPixel: { x: number; y: number } | undefined = $state();
 
@@ -71,7 +77,7 @@
 	interact(editData.canvas).styleCursor(false).on('tap', onTap).on('doubletap', onDoubleTap);
 
 	function handleMove(event: SignalArgs['interactions:move'] & (PointerEvent | GestureEvent)) {
-		if (event.shiftKey) {
+		if (event.shiftKey || spaceDown) {
 			return;
 		}
 
@@ -189,7 +195,7 @@
 		const newURL = new SvelteURL(window.location.href);
 		newURL.search = `?x=${pan.x}&y=${pan.y}&s=${scale}`;
 		if (editing) {
-			newURL.search += '&edit=true';
+			newURL.search += `&edit=true&idx=${selectedColorIdx}`;
 		}
 		editData.invalidateRect();
 		replaceState(newURL, page.state);
@@ -210,7 +216,7 @@
 	);
 
 	function onTap(event: MouseEvent) {
-		if (event.button !== 1) {
+		if (event.button !== 0) {
 			return;
 		}
 
@@ -234,7 +240,7 @@
 	}
 
 	function onMouseDown(event: MouseEvent) {
-		if (event.shiftKey && event.buttons & 1) {
+		if ((event.shiftKey || spaceDown) && event.buttons & 1) {
 			const { x, y } = editData.fromScreenEvent(event);
 
 			userPlace(x, y);
@@ -250,13 +256,13 @@
 	}
 
 	function onMouseMove(event: MouseEvent | PointerEvent) {
-		if (!event.clientX || !editData) {
+		if (!event.clientX) {
 			return;
 		}
 
 		cursorPosition = editData.fromScreenEvent(event);
 
-		if (event.shiftKey && event.buttons & 1) {
+		if ((event.shiftKey || spaceDown) && event.buttons & 1) {
 			const { x, y } = editData.fromScreenEvent(event);
 
 			userPlace(x, y);
@@ -275,6 +281,36 @@
 
 	function center({ x, y }: Coords) {
 		return { x: editData.width / 2 - x, y: editData.height / 2 - y };
+	}
+
+	let spaceDown = $state(false);
+
+	function onKey(event: KeyboardEvent, down: boolean) {
+		if (event.key == ' ') {
+			spaceDown = down;
+			event.preventDefault();
+			return;
+		}
+
+		if (!down) {
+			return;
+		}
+
+		switch (event.key) {
+			case 'Escape':
+				selectedPixel = undefined;
+				break;
+			case 'Enter':
+				if (editing) {
+					submitEditsToast();
+				}
+				break;
+			default:
+				//No recognised key, so don't prevent anything
+				return;
+		}
+
+		event.preventDefault();
 	}
 </script>
 
@@ -297,31 +333,19 @@
 		clearEdits={() => editData.clearEdits()}
 		onSubmit={() => submitEditsToast()}
 		edits={editData.edits}
-		onClose={() => (editing = false)}
+		onClose={() => setEditing(false)}
 	/>
 {/if}
 
 {#if !editing}
 	<ViewHud
 		{selectedPixel}
-		array={editData.array}
+		array={displayData.array}
 		{scale}
 		{center}
-		onDrawButton={() => (editing = true)}
+		onClose={() => (selectedPixel = undefined)}
+		onDrawButton={() => setEditing(true)}
 	/>
 {/if}
 
-<svelte:window
-	onkeydown={(event) => {
-		if (event.key === 'Escape') {
-			selectedPixel = undefined;
-			setEditing(false);
-		}
-		if (!editing) {
-			return;
-		}
-		if (event.key == 'Enter') {
-			submitEditsToast();
-		}
-	}}
-/>
+<svelte:window onkeydown={(event) => onKey(event, true)} onkeyup={(event) => onKey(event, false)} />

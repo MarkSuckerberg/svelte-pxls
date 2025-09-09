@@ -1,17 +1,19 @@
 <script lang="ts">
-	import { Brush, X as Exit, ClipboardCopy } from '@lucide/svelte';
-	import { colorNames, colors, type Coords } from './socket';
+	import { Brush, ClipboardCopy, X as Exit } from '@lucide/svelte';
 	import type { ArrayGrid } from './arrayGrid';
+	import { colorNames, colors, type Coords } from './socket';
 
 	let {
 		selectedPixel,
 		array,
 		onDrawButton,
-		scale,
+		onClose,
+		scale = 1,
 		center
 	}: {
 		selectedPixel: Coords | undefined;
 		array: ArrayGrid | undefined;
+		onClose: () => void;
 		onDrawButton: (event: MouseEvent) => void;
 		scale: number;
 		center: (coords: Coords) => Coords;
@@ -53,7 +55,7 @@
 			<button
 				class="float-right m-1 btn h-12 w-12 flex-1 p-0"
 				onclick={() => {
-					selectedPixel = undefined;
+					onClose();
 					linkCopied = undefined;
 				}}
 			>
@@ -69,7 +71,7 @@
 				<button
 					class="m-auto btn w-1/2 preset-filled"
 					onclick={() => {
-						onCopy;
+						onCopy();
 					}}
 				>
 					<ClipboardCopy />

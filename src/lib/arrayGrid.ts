@@ -1,10 +1,10 @@
-import { get1DPosition2D, type Pixel } from './socket';
+import { get1DPosition2D, type Dimensions, type Pixel } from './socket';
 
 //Why did I do all this though
 export class Int2DArrayHelper {
 	[row: number]: Uint8Array;
 
-	public constructor(array: Uint8Array, width: number, height: number) {
+	public constructor(array: Uint8Array, { width, height }: Dimensions) {
 		if (array.byteLength !== width * height) {
 			throw new Error('Invalid array width and height');
 		}
@@ -53,12 +53,12 @@ export class ArrayGrid {
 	readonly width: number;
 	readonly height: number;
 
-	public constructor(width: number, height: number, array: Uint8Array | undefined = undefined) {
+	public constructor({ width, height }: Dimensions, array: Uint8Array | undefined = undefined) {
 		this.width = width;
 		this.height = height;
 
 		this.array = array || new Uint8Array(width * height);
-		this.grid = new Int2DArrayHelper(this.array, width, height);
+		this.grid = new Int2DArrayHelper(this.array, { width, height });
 	}
 
 	public set({ x, y, color }: Pixel) {
@@ -78,7 +78,7 @@ export class ArrayGrid {
 		}
 		//return this.grid[y][x]
 
-		const position = (x % this.width) + y * this.width;
+		const position = get1DPosition2D(x, y, this.width, this.height);
 
 		return this.array[position];
 	}

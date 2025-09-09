@@ -1,18 +1,22 @@
 <script lang="ts">
+	import Grid from '$lib/Grid.svelte';
+	import PageController from '$lib/PageController.svelte';
+	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
 	import {
 		type ClientToServerEvents,
+		type Dimensions,
 		type Pixel,
 		type ServerToClientEvents
 	} from '$lib/socket';
-	import { onMount } from 'svelte';
 	import { io, type Socket } from 'socket.io-client';
-	import type { PageProps } from './newpage/$types';
-	import { ArrayGrid } from '$lib/arrayGrid';
-	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
-	import Grid from '$lib/Grid.svelte';
-	import PageController from '$lib/PageController.svelte';
+	import { onMount } from 'svelte';
+	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+	let pan = $state(data.pan);
+	let scale = $state(data.scale);
+	let editing = $state(data.edit);
+
 	let canvas: HTMLCanvasElement;
 	let userCanvas: HTMLCanvasElement;
 
@@ -22,9 +26,6 @@
 	let editData: PixelEditCanvas | undefined = $state();
 	let socket: Socket<ServerToClientEvents, ClientToServerEvents> | undefined = $state();
 
-	let pan = $state(data.pan);
-	let scale = $state(data.scale);
-	let editing = $state(data.edit);
 	let grid = $state(false);
 	let moving = $state(false);
 
@@ -39,31 +40,23 @@
 
 		socket = getSocket;
 
-		socket.compress(true).once('map', (rawMap, width, height) => {
-			const map = new Uint8Array(rawMap);
-			const result = new Uint32Array(map.length);
-
-			startCanvas(width, height, map);
+		socket.compress(true).once('map', (rawMap, size) => {
+			//startCanvas(size, rawMap);
 		});
 	}
 
-	function startCanvas(width: number, height: number, array?: Uint8Array) {
-		displayData = new PixelCanvas(
-			canvas,
-			width,
-			height,
-			new ArrayGrid(width, height, array),
-			0
-		);
+	function startCanvas(dimensions: Dimensions, array?: Uint8Array) {
+		displayData = new PixelCanvas(canvas, dimensions, array, 0);
 
 		const storedEdits = localStorage.getItem('currentEdits');
 		const edits = storedEdits ? (JSON.parse(storedEdits) as Pixel[]) : undefined;
-		editData = new PixelEditCanvas(userCanvas, width, height, edits);
+		editData = new PixelEditCanvas(userCanvas, dimensions, edits);
 	}
 
 	onMount(() => {
-		startSocket()
-	})
+		startCanvas(data.dimensions, data.array);
+		startSocket();
+	});
 </script>
 
 <div class="canvas-container main">
@@ -72,8 +65,8 @@
 	{/if}
 	<div class="canvas-inner main">
 		<canvas
-			width="500"
-			height="500"
+			width={data.dimensions.width}
+			height={data.dimensions.height}
 			bind:this={canvas}
 			class="main-canvas"
 			style:transform={`translate(${scale <= 1 ? Math.round(pan.x) : pan.x}px, ${scale <= 1 ? Math.round(pan.y) : pan.y}px)`}
@@ -104,7 +97,7 @@
 			class="main-canvas user-canvas"
 			style:transform={`translate(${scale <= 1 ? Math.round(pan.x) : pan.x}px, ${scale <= 1 ? Math.round(pan.y) : pan.y}px)`}
 			style:zoom={`${scale * 100}%`}
-			style:opacity={editing ? 100 : 0}
+			style:opacity={editing ? '100%' : '10%'}
 			style:cursor={moving ? 'grabbing' : editing ? 'crosshair' : 'default'}
 		>
 		</canvas>
@@ -120,12 +113,13 @@
 		{displayData}
 		{socket}
 		{container}
+		initialColor={data.color}
 	/>
 {/if}
 
 <svelte:window
 	onkeydown={(event) => {
-		if (event.key === 'g') {
+		if (event.key === 'g' || event.key === 'G') {
 			grid = !grid;
 		}
 	}}
@@ -152,7 +146,6 @@
 	}
 
 	.main-canvas {
-		width: 500px;
 		image-rendering: pixelated;
 	}
 </style>

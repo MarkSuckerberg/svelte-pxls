@@ -1,7 +1,7 @@
 import {
 	type ClientToServerEvents,
-	type ServerToClientEvents,
 	type InterServerEvents,
+	type ServerToClientEvents,
 	type SocketData,
 	HEIGHT,
 	WIDTH
@@ -10,56 +10,77 @@ import {
 import { ArrayGrid } from './lib/arrayGrid.js';
 import { fromFile, toFile } from './lib/arrayGrid.server.js';
 
-import { Server as ioServer } from 'socket.io';
 import type { Server } from 'http';
-import type { Server as HTTPSServer } from 'https';
 import type { Http2SecureServer, Http2Server } from 'http2';
+import type { Server as HTTPSServer } from 'https';
+import { Server as ioServer } from 'socket.io';
 
-export async function attach_sockets(
-	server: Server | HTTPSServer | Http2SecureServer | Http2Server
-) {
-	const users: Map<string, SocketData> = new Map();
+export class PixelSocketServer {
+	public static async fromFile(
+		file: string,
+		server: Server | HTTPSServer | Http2SecureServer | Http2Server
+	) {
+		const data = (await fromFile(file)) || new ArrayGrid({ width: WIDTH, height: HEIGHT });
 
-	const data = (await fromFile('board2.dat')) || new ArrayGrid(WIDTH, HEIGHT);
+		return new PixelSocketServer(data, server);
+	}
 
-	const io = new ioServer<
+	public users: Map<string, SocketData> = new Map();
+	public readonly data;
+	public readonly io: ioServer<
 		ClientToServerEvents,
 		ServerToClientEvents,
 		InterServerEvents,
 		SocketData
-	>(server);
+	>;
 
-	io.on('connection', (socket) => {
-		users.set(socket.id, { name: 'test' });
-		io.compress(true).emit('map', data.array, data.width, data.height);
+	public constructor(
+		data: ArrayGrid,
+		server: Server | HTTPSServer | Http2SecureServer | Http2Server
+	) {
+		this.io = new ioServer<
+			ClientToServerEvents,
+			ServerToClientEvents,
+			InterServerEvents,
+			SocketData
+		>(server);
 
-		socket.on('place', (pixels, ack) => {
-			pixels.forEach((pixel, index) => {
-				try {
-					data.set(pixel);
-				} catch {
-					pixels.splice(index);
-					return;
-				}
+		this.data = data;
+
+		this.io.on('connection', (socket) => {
+			this.users.set(socket.id, { name: 'test' });
+			this.io
+				.compress(true)
+				.emit('map', data.array, { width: data.width, height: data.height });
+
+			socket.on('place', (pixels, ack) => {
+				pixels.forEach((pixel, index) => {
+					try {
+						data.set(pixel);
+					} catch {
+						pixels.splice(index);
+						return;
+					}
+				});
+
+				socket.broadcast.emit('pixelUpdate', pixels);
+				ack(pixels);
+
+				toFile(data, 'board2.dat');
 			});
 
-			socket.broadcast.emit('pixelUpdate', pixels);
-			ack(pixels);
+			socket.on('disconnect', () => {
+				this.users.delete(socket.id);
 
-			toFile(data, 'board2.dat');
-		});
+				const userArray: SocketData[] = [];
+				this.users.forEach((element) => {
+					userArray.push(element);
+				});
 
-		socket.on('disconnect', () => {
-			users.delete(socket.id);
+				this.io.emit('users', userArray);
 
-			const userArray: SocketData[] = [];
-			users.forEach((element) => {
-				userArray.push(element);
+				toFile(data, 'board2.dat');
 			});
-
-			io.emit('users', userArray);
-
-			toFile(data, 'board2.dat');
 		});
-	});
+	}
 }

@@ -1,10 +1,18 @@
-export const WIDTH = 500;
+export const WIDTH = 5000;
 export const HEIGHT = 500;
+
+export const DEFAULT_COLOR_INDEX = 8;
+
 import colorFile from './colors.json';
 
 export interface Coords {
-	x: number,
-	y: number
+	x: number;
+	y: number;
+}
+
+export interface Dimensions {
+	width: number;
+	height: number;
 }
 
 export type ServerToClientEvents = {
@@ -12,7 +20,7 @@ export type ServerToClientEvents = {
 	connection: (src: string) => void;
 	heartbeat: (time: number) => void;
 	users: (users: SocketData[]) => void;
-	map: (map: Uint8Array, width: number, height: number) => void;
+	map: (map: Uint8Array, size: Dimensions) => void;
 };
 
 export type ClientToServerEvents = {
@@ -67,5 +75,5 @@ export const colorsBackwards = colorFile.map(({ name, value }) => {
 });
 
 export function get1DPosition2D(x: number, y: number, width: number, height: number) {
-	return (x % width) + y * height;
+	return (x % width) + y * width;
 }

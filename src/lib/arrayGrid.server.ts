@@ -1,5 +1,4 @@
-
-import { readFile, writeFile, copyFile } from 'fs/promises';
+import { copyFile, readFile, writeFile } from 'fs/promises';
 import { ArrayGrid } from './arrayGrid';
 
 const VERSION = 1;
@@ -10,7 +9,7 @@ export async function fromFile(file: string) {
 		.then(async (fileData) => {
 			try {
 				if (!fileData.length) {
-					console.error("Map file empty.")
+					console.error('Map file empty.');
 					return null;
 				}
 
@@ -29,8 +28,7 @@ export async function fromFile(file: string) {
 				}
 
 				return new ArrayGrid(
-					width,
-					height,
+					{ width, height },
 					new Uint8Array(fileData.buffer, headerSize, width * height)
 				);
 			} catch (error) {
@@ -58,4 +56,3 @@ export async function toFile(grid: ArrayGrid, file: string) {
 
 	await writeFile(file, data);
 }
-
