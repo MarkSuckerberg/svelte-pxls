@@ -2,18 +2,21 @@
 	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 	import EditMenu from '$lib/components/EditMenu.svelte';
-	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
 	import Reticle from '$lib/components/Reticle.svelte';
+	import ViewHud from '$lib/components/ViewHUD.svelte';
+	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
+	import { toaster } from '$lib/toaster';
 	import {
 		DEFAULT_COLOR_INDEX,
 		type ClientToServerEvents,
 		type Coords,
+		type Pixel,
+		type PixelSession,
 		type ServerToClientEvents
 	} from '$lib/types';
-	import { toaster } from '$lib/toaster';
-	import ViewHud from '$lib/components/ViewHUD.svelte';
 	import type { GestureEvent } from '@interactjs/actions/gesture/plugin';
 	import type { SignalArgs } from '@interactjs/core/scope';
+	import { LogIn } from '@lucide/svelte';
 	import interact from 'interactjs';
 	import { type Socket } from 'socket.io-client';
 	import { SvelteURL } from 'svelte/reactivity';
@@ -22,6 +25,7 @@
 		pan = $bindable({ x: 0, y: 0 }),
 		scale = $bindable(1),
 		editing = $bindable(false),
+		session,
 		editData,
 		displayData,
 		socket,
@@ -31,6 +35,7 @@
 		pan: Coords;
 		scale: number;
 		editing: boolean;
+		session: PixelSession | null;
 		editData: PixelEditCanvas;
 		displayData: PixelCanvas;
 		socket: Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -75,6 +80,14 @@
 			onend: () => updateLocation()
 		});
 	interact(editData.canvas).styleCursor(false).on('tap', onTap).on('doubletap', onDoubleTap);
+
+	socket.on('map', (mapData, size) => {
+		if (size.height != displayData.height || size.width != displayData.width) {
+			return;
+		}
+
+		displayData.setData(mapData);
+	});
 
 	function handleMove(event: SignalArgs['interactions:move'] & (PointerEvent | GestureEvent)) {
 		if (event.shiftKey || spaceDown) {
@@ -162,19 +175,15 @@
 			return;
 		}
 
-		socket.timeout(10000).emit('place', editData.getAll(), (err, pixels) => {
-			if (err) {
-				console.error("Server didn't respond to pixel placement! Edits not saved.");
-				return;
-			}
-			setEditing(false);
-			editData.clearEdits();
-			displayData.setPixels(pixels);
-		});
+		const pixels: Pixel[] = await socket.timeout(10000).emitWithAck('place', editData.getAll());
+
+		setEditing(false);
+		editData.clearEdits();
+		displayData.setPixels(pixels);
 	}
 
-	function submitEditsToast() {
-		const promise = submitEdits().catch((reason) => console.error(reason));
+	async function submitEditsToast() {
+		const promise = submitEdits();
 		toaster.promise(promise, {
 			loading: {
 				title: 'Submitting pixels...'
@@ -188,7 +197,7 @@
 				description: 'Error placing pixels! Edits not submitted. Try again later.'
 			})
 		});
-		return promise;
+		return promise.catch(console.error);
 	}
 
 	function updateLocation() {
@@ -327,25 +336,35 @@
 	></div>
 {/if}
 
-{#if editing}
-	<EditMenu
-		bind:selectedColorIdx
-		clearEdits={() => editData.clearEdits()}
-		onSubmit={() => submitEditsToast()}
-		edits={editData.edits}
-		onClose={() => setEditing(false)}
-	/>
-{/if}
+{#if session}
+	{#if editing}
+		<EditMenu
+			bind:selectedColorIdx
+			clearEdits={() => editData.clearEdits()}
+			onSubmit={() => submitEditsToast()}
+			edits={editData.edits}
+			onClose={() => setEditing(false)}
+		/>
+	{/if}
 
-{#if !editing}
-	<ViewHud
-		{selectedPixel}
-		array={displayData.array}
-		{scale}
-		{center}
-		onClose={() => (selectedPixel = undefined)}
-		onDrawButton={() => setEditing(true)}
-	/>
+	{#if !editing}
+		<ViewHud
+			{selectedPixel}
+			array={displayData.array}
+			{scale}
+			{center}
+			onClose={() => (selectedPixel = undefined)}
+			onDrawButton={() => setEditing(true)}
+		/>
+	{/if}
+{:else}
+	<div class="absolute right-0 bottom-0 left-0 mx-auto w-2xl">
+		<form method="POST" action="/signin">
+			<button class="btn w-full preset-filled-primary-500" type="submit">
+				<LogIn /><span>Sign in</span>
+			</button>
+		</form>
+	</div>
 {/if}
 
 <svelte:window onkeydown={(event) => onKey(event, true)} onkeyup={(event) => onKey(event, false)} />

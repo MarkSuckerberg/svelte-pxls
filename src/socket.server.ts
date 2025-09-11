@@ -1,28 +1,28 @@
-import {
-	type ClientToServerEvents,
-	type InterServerEvents,
-	type ServerToClientEvents,
-	type SocketData,
-	HEIGHT,
-	WIDTH
-} from './lib/types.js';
 import { Auth, createActionURL } from '@auth/core';
 import { ArrayGrid } from './lib/arrayGrid.js';
 import { fromFile, toFile } from './lib/arrayGrid.server.js';
+import {
+	type ClientToServerEvents,
+	type Dimensions,
+	type InterServerEvents,
+	type ServerToClientEvents,
+	type SocketData
+} from './lib/types.js';
 
+import type { Session } from '@auth/sveltekit';
 import type { Server } from 'http';
 import type { Http2SecureServer, Http2Server } from 'http2';
 import type { Server as HTTPSServer } from 'https';
 import { Server as SocketServer } from 'socket.io';
-import { authConfig } from './authConfig.server.js';
-import type { Session } from '@auth/sveltekit';
+import { authConfig } from './config.server.js';
 
 export class PixelSocketServer {
 	public static async fromFile(
 		file: string,
-		server: Server | HTTPSServer | Http2SecureServer | Http2Server
+		server: Server | HTTPSServer | Http2SecureServer | Http2Server,
+		size: Dimensions
 	) {
-		const data = (await fromFile(file)) || new ArrayGrid({ width: WIDTH, height: HEIGHT });
+		const data = (await fromFile(file)) || new ArrayGrid(size);
 
 		return new PixelSocketServer(data, server);
 	}
@@ -75,7 +75,36 @@ export class PixelSocketServer {
 		});
 
 		this.io.on('connection', (socket) => {
-			console.log(socket.data.session);
+			this.users.set(socket.id, socket.data);
+
+			this.io.emit(
+				'users',
+				this.users
+					.entries()
+					.map(([id, userdata]) => {
+						return userdata.session?.user?.name || id;
+					})
+					.toArray()
+			);
+
+			socket.on('disconnect', () => {
+				this.users.delete(socket.id);
+
+				this.io.emit(
+					'users',
+					this.users
+						.entries()
+						.map(([id, userdata]) => {
+							return userdata.session?.user?.name || id;
+						})
+						.toArray()
+				);
+			});
+
+			if (!socket.data.session) {
+				return;
+			}
+
 			socket.on('place', (pixels, ack) => {
 				pixels.forEach((pixel, index) => {
 					try {
@@ -88,19 +117,6 @@ export class PixelSocketServer {
 
 				socket.broadcast.emit('pixelUpdate', pixels);
 				ack(pixels);
-
-				toFile(data, 'board2.dat');
-			});
-
-			socket.on('disconnect', () => {
-				this.users.delete(socket.id);
-
-				const userArray: SocketData[] = [];
-				this.users.forEach((element) => {
-					userArray.push(element);
-				});
-
-				this.io.emit('users', userArray);
 
 				toFile(data, 'board2.dat');
 			});

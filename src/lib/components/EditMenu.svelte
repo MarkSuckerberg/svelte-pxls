@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Eraser, X as Exit, Send, Trash } from '@lucide/svelte';
-	import type { EditSet } from '../pixelCanvas.svelte';
+		import type { EditSet } from '$lib/EditSet';
 	import { colorNames, colors } from '../types';
 
 	let {

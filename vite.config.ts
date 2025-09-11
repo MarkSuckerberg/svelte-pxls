@@ -1,11 +1,11 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import devtoolsJson from 'vite-plugin-devtools-json';
-import 'dotenv/config';
 
 import { defineConfig, type Plugin, type PreviewServer, type ViteDevServer } from 'vite';
 
-import { PixelSocketServer } from './src/server.socket';
+import { config } from './src/config.server';
+import { PixelSocketServer } from './src/socket.server';
 
 const socketIo: Plugin = {
 	name: 'socket.io',
@@ -15,7 +15,11 @@ const socketIo: Plugin = {
 		}
 
 		try {
-			globalThis.io = await PixelSocketServer.fromFile('board2.dat', server.httpServer);
+			globalThis.io = await PixelSocketServer.fromFile(
+				'board2.dat',
+				server.httpServer,
+				config.size
+			);
 		} catch (e) {
 			console.error(e);
 		}
@@ -27,7 +31,11 @@ const socketIo: Plugin = {
 		}
 
 		try {
-			globalThis.io = await PixelSocketServer.fromFile('board2.dat', server.httpServer);
+			globalThis.io = await PixelSocketServer.fromFile(
+				'board2.dat',
+				server.httpServer,
+				config.size
+			);
 		} catch (e) {
 			console.error(e);
 		}

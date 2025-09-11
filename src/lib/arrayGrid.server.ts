@@ -46,8 +46,8 @@ export async function toFile(grid: ArrayGrid, file: string) {
 	const header = Buffer.allocUnsafe(HEADER_SIZE);
 	header.writeUInt8(HEADER_SIZE, 0); // 1
 	header.writeUInt8(VERSION, 1); // 2
-	header.writeUInt16BE(grid.height, 2); // 3-4
-	header.writeUInt16BE(grid.width, 4); // 5-6
+	header.writeUInt16BE(grid.width, 2); // 3-4
+	header.writeUInt16BE(grid.height, 4); // 5-6
 
 	const data = new Uint8Array(grid.width * grid.height + HEADER_SIZE);
 

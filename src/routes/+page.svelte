@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import Grid from '$lib/components/Grid.svelte';
 	import PageController from '$lib/components/PageController.svelte';
 	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
@@ -8,11 +9,11 @@
 		type Pixel,
 		type ServerToClientEvents
 	} from '$lib/types';
+	import { BadgeQuestionMark } from '@lucide/svelte';
+	import { Avatar } from '@skeletonlabs/skeleton-svelte';
 	import { io, type Socket } from 'socket.io-client';
 	import { onMount } from 'svelte';
 	import type { PageProps } from './$types';
-	import { SignIn, SignOut } from '@auth/sveltekit/components';
-	import { page } from '$app/state';
 
 	let { data }: PageProps = $props();
 	let pan = $state(data.pan);
@@ -31,8 +32,10 @@
 	let grid = $state(false);
 	let moving = $state(false);
 
+	let currentUsers: string[] = $state([]);
+
 	async function startSocket() {
-		const getSocket = io({
+		const getSocket: Socket<ServerToClientEvents, ClientToServerEvents> = io({
 			rememberUpgrade: true
 		});
 
@@ -41,6 +44,10 @@
 		}
 
 		socket = getSocket;
+
+		socket.on('users', (users) => {
+			currentUsers = users;
+		});
 	}
 
 	function startCanvas(dimensions: Dimensions, array?: Uint8Array) {
@@ -50,6 +57,8 @@
 		const edits = storedEdits ? (JSON.parse(storedEdits) as Pixel[]) : undefined;
 		editData = new PixelEditCanvas(userCanvas, dimensions, edits);
 	}
+
+	let showUser = $state(false);
 
 	onMount(() => {
 		startCanvas(data.dimensions, data.array);
@@ -66,7 +75,7 @@
 			width={data.dimensions.width}
 			height={data.dimensions.height}
 			bind:this={canvas}
-			class="main-canvas"
+			class="main-canvas display-canvas"
 			style:transform={`translate(${scale <= 1 ? Math.round(pan.x) : pan.x}px, ${scale <= 1 ? Math.round(pan.y) : pan.y}px)`}
 			style:zoom={`${scale * 100}%`}
 		>
@@ -74,27 +83,46 @@
 	</div>
 </div>
 
-<div class="absolute z-10">
+<div class="absolute z-10 m-3">
 	{#if page.data.session}
-		<span class="signedInText">
-			<p>Signed in as:</p>
-			<ul>
-				<li>
-					Username: {page.data.session.user?.name}
-				</li>
-				<li>
-					Email: {page.data.session.user?.email}
-				</li>
-			</ul>
-		</span>
-		<SignOut>
-			<div slot="submitButton" class="buttonPrimary">Sign out</div>
-		</SignOut>
+		<button onclick={() => (showUser = !showUser)}>
+			<Avatar
+				src={page.data.session.user?.image || undefined}
+				name={page.data.session.user?.name || 'Unknown'}
+			/>
+		</button>
+
+		{#if showUser}
+			<div class="card preset-filled-surface-500 p-2">
+				<p>Signed in as:</p>
+				<ul>
+					<li>
+						Username: {page.data.session.user?.name}
+					</li>
+					<li>
+						Email: {page.data.session.user?.email}
+					</li>
+				</ul>
+
+				<p>
+					<span
+						>{currentUsers.length} user{currentUsers.length != 1 ? 's' : ''} online</span
+					>
+				</p>
+
+				<form action="/signout" method="POST">
+					<button type="submit" class="btn preset-filled-primary-500">Sign out</button>
+				</form>
+			</div>
+		{/if}
 	{:else}
-		<span>You are not signed in</span>
-		<SignIn>
-			<div slot="submitButton" class="buttonPrimary">Sign in</div>
-		</SignIn>
+		<form action="/signin" method="POST">
+			<button type="submit" title="Sign In">
+				<Avatar name="Guest">
+					<BadgeQuestionMark />
+				</Avatar>
+			</button>
+		</form>
 	{/if}
 </div>
 
@@ -113,8 +141,8 @@
 		1px 10px black)"
 	>
 		<canvas
-			width="500"
-			height="500"
+			width={data.dimensions.width}
+			height={data.dimensions.width}
 			bind:this={userCanvas}
 			class="main-canvas user-canvas"
 			style:transform={`translate(${scale <= 1 ? Math.round(pan.x) : pan.x}px, ${scale <= 1 ? Math.round(pan.y) : pan.y}px)`}
@@ -135,6 +163,7 @@
 		{displayData}
 		{socket}
 		{container}
+		session={data.session}
 		initialColor={data.color}
 	/>
 {/if}
@@ -169,5 +198,9 @@
 
 	.main-canvas {
 		image-rendering: pixelated;
+	}
+
+	.display-canvas {
+		background-color: #f8f4f0ff;
 	}
 </style>

@@ -1,6 +1,6 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 
-import type { PixelSocketServer } from './server.socket';
+import type { PixelSocketServer } from './socket.server';
 
 // for information about these interfaces
 declare global {

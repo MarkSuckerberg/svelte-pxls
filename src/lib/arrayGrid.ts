@@ -67,7 +67,7 @@ export class ArrayGrid {
 		}
 		//this.grid[y][x] = color;
 
-		const position = get1DPosition2D(x, y, this.width, this.height);
+		const position = get1DPosition2D(x, y, this.width);
 
 		this.array[position] = color;
 	}
@@ -78,7 +78,7 @@ export class ArrayGrid {
 		}
 		//return this.grid[y][x]
 
-		const position = get1DPosition2D(x, y, this.width, this.height);
+		const position = get1DPosition2D(x, y, this.width);
 
 		return this.array[position];
 	}

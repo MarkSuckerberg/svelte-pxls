@@ -1,10 +1,7 @@
-export const WIDTH = 5000;
-export const HEIGHT = 500;
-
 export const DEFAULT_COLOR_INDEX = 8;
 
-import colorFile from './colors.json';
 import type { Session } from '@auth/sveltekit';
+import colorFile from './colors.json';
 
 export interface Coords {
 	x: number;
@@ -17,11 +14,9 @@ export interface Dimensions {
 }
 
 export type ServerToClientEvents = {
-	pixelUpdate: (update: Pixel[]) => void;
-	connection: (src: string) => void;
-	heartbeat: (time: number) => void;
-	users: (users: SocketData[]) => void;
 	map: (map: Uint8Array, size: Dimensions) => void;
+	pixelUpdate: (update: Pixel[]) => void;
+	users: (users: string[]) => void;
 };
 
 export type ClientToServerEvents = {
@@ -30,8 +25,10 @@ export type ClientToServerEvents = {
 
 export type InterServerEvents = never;
 
+export type PixelSession = Session;
+
 export type SocketData = {
-	session: Session | null;
+	session: PixelSession | null;
 };
 
 export type Pixel = {
@@ -75,6 +72,6 @@ export const colorsBackwards = colorFile.map(({ name, value }) => {
 	);
 });
 
-export function get1DPosition2D(x: number, y: number, width: number, height: number) {
+export function get1DPosition2D(x: number, y: number, width: number) {
 	return (x % width) + y * width;
 }

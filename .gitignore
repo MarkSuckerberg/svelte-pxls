@@ -26,3 +26,5 @@ vite.config.ts.timestamp-*
 # pixels
 *.dat
 *.dat.bak
+
+config.json

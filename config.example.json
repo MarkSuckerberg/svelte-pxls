@@ -1,0 +1,16 @@
+{
+    "providers": {
+        "discord": {
+            "clientId": "client-id",
+            "clientSecret": "client-secret"
+        },
+        "google": {},
+        "twitch": {}
+    },
+    "size": {
+        "width": 5000,
+        "height": 500
+    },
+    "port": 3000,
+    "authSecret": "secret-here"
+}
