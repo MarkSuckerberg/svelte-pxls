@@ -2,7 +2,8 @@
 	"compilerOptions": {
 		"esModuleInterop": true,
 		"target": "esnext",
-		"moduleResolution": "node",
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
 		"forceConsistentCasingInFileNames": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,

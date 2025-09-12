@@ -100,6 +100,9 @@
 						Username: {page.data.session.user?.name}
 					</li>
 					<li>
+						ID: {page.data.session.user?.id}
+					</li>
+					<li>
 						Email: {page.data.session.user?.email}
 					</li>
 				</ul>

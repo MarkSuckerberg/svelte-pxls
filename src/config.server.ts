@@ -1,23 +1,30 @@
-import Discord from '@auth/core/providers/discord';
-import Google from '@auth/core/providers/google';
-import Twitch from '@auth/core/providers/twitch';
-import type { SvelteKitAuthConfig } from '@auth/sveltekit';
-import defaultConfig from '../config.example.json';
+import defaultConfig from '../config.example.json' with { type: 'json' };
+import userConfig from '../config.json' with { type: 'json' };
+import type { Dimensions } from './lib/types.js';
 
-export let config: typeof defaultConfig;
+interface ProviderCredentials {
+	clientId: string;
+	clientSecret: string;
+}
+
+interface Config {
+	size: Dimensions;
+	port: number;
+	authSecret: string;
+	db: {
+		url: string;
+	};
+	providers: {
+		discord: ProviderCredentials;
+		google: ProviderCredentials;
+		tumblr: ProviderCredentials;
+		twitch: ProviderCredentials;
+	};
+}
+
+export let config: Config;
 try {
-	config = (await import('../config.json')) as typeof defaultConfig;
+	config = userConfig as Config;
 } catch (error) {
 	config = defaultConfig;
 }
-
-export const authConfig: SvelteKitAuthConfig = {
-	providers: [
-		Discord(config.providers.discord),
-		Google(config.providers.google),
-		Twitch(config.providers.twitch)
-	],
-	basePath: '/auth',
-	trustHost: true,
-	secret: config.authSecret
-};

@@ -1,5 +1,6 @@
 import { copyFile, readFile, writeFile } from 'fs/promises';
-import { ArrayGrid } from './arrayGrid';
+import { ArrayGrid } from '../arrayGrid.js';
+import type { Dimensions } from '../types.js';
 
 const VERSION = 1;
 const HEADER_SIZE = 6;
@@ -34,6 +35,31 @@ export async function fromFile(file: string) {
 			} catch (error) {
 				await copyFile(file, `${file}.bak`);
 				console.error('Error reading map save. File backed up.', error);
+			}
+		})
+		.catch(() => {
+			// File couldn't be read to begin with
+			return null;
+		});
+}
+
+export async function fromLegacyFile(file: string, { width, height }: Dimensions) {
+	return readFile(file)
+		.then(async (fileData) => {
+			try {
+				if (!fileData.length) {
+					console.error('Map file empty.');
+					return null;
+				}
+
+				if (fileData.length !== height * width) {
+					throw new Error('Map data invalid size!');
+				}
+
+				return new ArrayGrid({ width, height }, new Uint8Array(fileData.buffer));
+			} catch (error) {
+				await copyFile(file, `${file}.bak`);
+				console.error('Error reading legacy map save. File backed up.', error);
 			}
 		})
 		.catch(() => {

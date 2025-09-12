@@ -1,6 +1,6 @@
 import { Auth, createActionURL } from '@auth/core';
 import { ArrayGrid } from './lib/arrayGrid.js';
-import { fromFile, toFile } from './lib/arrayGrid.server.js';
+import { fromFile, toFile } from './lib/server/arrayGrid.server.js';
 import {
 	type ClientToServerEvents,
 	type Dimensions,
@@ -9,12 +9,13 @@ import {
 	type SocketData
 } from './lib/types.js';
 
+import type { ResponseInternal } from '@auth/core/types';
 import type { Session } from '@auth/sveltekit';
 import type { Server } from 'http';
 import type { Http2SecureServer, Http2Server } from 'http2';
 import type { Server as HTTPSServer } from 'https';
 import { Server as SocketServer } from 'socket.io';
-import { authConfig } from './config.server.js';
+import { authConfig } from './authConfig.server.js';
 
 export class PixelSocketServer {
 	public static async fromFile(
@@ -66,9 +67,27 @@ export class PixelSocketServer {
 
 			const url = createActionURL('session', 'http', headers, process.env, authConfig);
 
-			const session = await Auth(new Request(url, req), authConfig);
-			if (session.ok) {
+			const session: ResponseInternal | Response = await Auth(
+				new Request(url, req),
+				authConfig
+			);
+
+			if (session instanceof Response) {
+				if (!session.ok) {
+					return next();
+				}
+
 				socket.data.session = (await session.json()) as Session | null;
+			} else {
+				if (session.status !== 200) {
+					return next();
+				}
+
+				socket.data.session = session.body;
+			}
+
+			if (session.status === 200) {
+				socket.data.session = (await session) as Session | null;
 			}
 
 			next();

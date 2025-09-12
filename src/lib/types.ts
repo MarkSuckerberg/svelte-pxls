@@ -1,7 +1,7 @@
 export const DEFAULT_COLOR_INDEX = 8;
 
 import type { Session } from '@auth/sveltekit';
-import colorFile from './colors.json';
+import colorFile from './colors.json' with { type: 'json' };
 
 export interface Coords {
 	x: number;
@@ -74,4 +74,12 @@ export const colorsBackwards = colorFile.map(({ name, value }) => {
 
 export function get1DPosition2D(x: number, y: number, width: number) {
 	return (x % width) + y * width;
+}
+
+declare module '@auth/core/jwt' {
+	/** Returned by the `jwt` callback and `auth`, when using JWT sessions */
+	interface JWT {
+		/** OpenID ID Token */
+		id?: string;
+	}
 }

@@ -1,4 +1,4 @@
-import { get1DPosition2D, type Dimensions, type Pixel } from './types';
+import { get1DPosition2D, type Dimensions, type Pixel } from './types.js';
 
 //Why did I do all this though
 export class Int2DArrayHelper {
