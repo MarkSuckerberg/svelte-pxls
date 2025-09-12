@@ -12,22 +12,22 @@ export class EditSet {
 
 		this.edits = $state(new SvelteMap());
 		if (edits) {
-			edits.forEach((pixel) => {
-				this.edits.set(get1DPosition2D(pixel.x, pixel.y, width, height), pixel);
+			Array.prototype.forEach.call(edits, (edit) => {
+				this.edits.set(get1DPosition2D(edit.x, edit.y, width), edit);
 			});
 		}
 	}
 
 	public set(pixel: Pixel) {
-		this.edits.set(get1DPosition2D(pixel.x, pixel.y, this.width, this.height), pixel);
+		this.edits.set(get1DPosition2D(pixel.x, pixel.y, this.width), pixel);
 	}
 
 	public delete({ x, y }: Coords) {
-		return this.edits.delete(get1DPosition2D(x, y, this.width, this.height));
+		return this.edits.delete(get1DPosition2D(x, y, this.width));
 	}
 
 	public get({ x, y }: Coords) {
-		return this.edits.get(get1DPosition2D(x, y, this.width, this.height));
+		return this.edits.get(get1DPosition2D(x, y, this.width));
 	}
 
 	public clear() {

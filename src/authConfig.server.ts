@@ -69,29 +69,36 @@ export const authConfig: SvelteKitAuthConfig = {
 	trustHost: true,
 	secret: config.authSecret,
 	callbacks: {
-		async signIn({ user, profile }) {
-			if (!profile || !profile.id || !user.name) {
-				return false;
-			}
+		async signIn({ user, account, profile }) {
+			await db.transaction(async (tx) => {
+				if (!profile || !profile.id || !user.name || !account?.provider) {
+					return false;
+				}
 
-			let userId = (
-				await db
-					.select({ id: oauthLinks.userId })
-					.from(oauthLinks)
-					.where(eq(oauthLinks.id, profile.id))
-					.limit(1)
-			)[0]?.id;
+				let userId = (
+					await tx
+						.select({ id: oauthLinks.userId })
+						.from(oauthLinks)
+						.where(eq(oauthLinks.id, profile.id))
+						.limit(1)
+				)[0]?.id;
 
-			if (!userId) {
-				userId = (
-					await db
-						.insert(users)
-						.values({ username: user.name })
-						.returning({ id: users.id })
-				)[0].id;
-			}
+				if (!userId) {
+					userId = (
+						await tx
+							.insert(users)
+							.values({ username: user.name })
+							.returning({ id: users.id })
+					)[0].id;
+				}
 
-			await db.insert(oauthLinks).values({ id: profile.id, userId, data: profile }).onConflictDoNothing();
+				await tx
+					.insert(oauthLinks)
+					.values({ id: profile.id, userId, data: profile, provider: account.provider })
+					.onConflictDoNothing();
+
+				user.id = userId.toString();
+			});
 
 			return true;
 		},

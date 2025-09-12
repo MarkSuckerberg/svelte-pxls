@@ -17,6 +17,7 @@ export type ServerToClientEvents = {
 	map: (map: Uint8Array, size: Dimensions) => void;
 	pixelUpdate: (update: Pixel[]) => void;
 	users: (users: string[]) => void;
+	userInfo: (userInfo: UserInfo) => void;
 };
 
 export type ClientToServerEvents = {

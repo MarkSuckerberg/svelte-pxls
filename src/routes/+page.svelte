@@ -25,6 +25,8 @@
 
 	let container: HTMLDivElement | undefined = $state();
 
+	let userInfo: UserInfo | undefined = $state();
+
 	let displayData: PixelCanvas | undefined = $state();
 	let editData: PixelEditCanvas | undefined = $state();
 	let socket: Socket<ServerToClientEvents, ClientToServerEvents> | undefined = $state();
@@ -44,6 +46,10 @@
 		}
 
 		socket = getSocket;
+
+		socket.on('userInfo', (user) => {
+			userInfo = user;
+		});
 
 		socket.on('users', (users) => {
 			currentUsers = users;
@@ -102,15 +108,23 @@
 					<li>
 						ID: {page.data.session.user?.id}
 					</li>
-					<li>
-						Email: {page.data.session.user?.email}
-					</li>
+					{#if userInfo}
+						<li>
+							Pixels: {userInfo.pixels} / {userInfo.maxPixels}
+						</li>
+						<li>
+							Placed: {userInfo.placed}
+						</li>
+						<li>
+							Next pixel: {Math.max(0, 20 - (Date.now() - userInfo.lastTicked))}s
+						</li>
+					{/if}
 				</ul>
 
 				<p>
-					<span
-						>{currentUsers.length} user{currentUsers.length != 1 ? 's' : ''} online</span
-					>
+					<span title={currentUsers.join(', ')}>
+						{currentUsers.length} user{currentUsers.length != 1 ? 's' : ''} online
+					</span>
 				</p>
 
 				<form action="/signout" method="POST">

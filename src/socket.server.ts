@@ -16,6 +16,8 @@ import type { Http2SecureServer, Http2Server } from 'http2';
 import type { Server as HTTPSServer } from 'https';
 import { Server as SocketServer } from 'socket.io';
 import { authConfig } from './authConfig.server.js';
+import { db, users } from './lib/server/db/index.js';
+import { eq } from 'drizzle-orm';
 
 export class PixelSocketServer {
 	public static async fromFile(
@@ -26,6 +28,15 @@ export class PixelSocketServer {
 		const data = (await fromFile(file)) || new ArrayGrid(size);
 
 		return new PixelSocketServer(data, server);
+	}
+
+	private userList() {
+		return this.users
+			.entries()
+			.map(([id, userdata], index) => {
+				return userdata.session?.user?.name || `Guest ${index}`;
+			})
+			.toArray();
 	}
 
 	public users: Map<string, SocketData> = new Map();
@@ -86,43 +97,44 @@ export class PixelSocketServer {
 				socket.data.session = session.body;
 			}
 
-			if (session.status === 200) {
-				socket.data.session = (await session) as Session | null;
-			}
-
 			next();
 		});
 
-		this.io.on('connection', (socket) => {
+		this.io.on('connection', async (socket) => {
 			this.users.set(socket.id, socket.data);
 
-			this.io.emit(
-				'users',
-				this.users
-					.entries()
-					.map(([id, userdata]) => {
-						return userdata.session?.user?.name || id;
-					})
-					.toArray()
-			);
+			this.io.emit('users', this.userList());
 
 			socket.on('disconnect', () => {
 				this.users.delete(socket.id);
 
-				this.io.emit(
-					'users',
-					this.users
-						.entries()
-						.map(([id, userdata]) => {
-							return userdata.session?.user?.name || id;
-						})
-						.toArray()
-				);
+				this.io.emit('users', this.userList());
 			});
 
-			if (!socket.data.session) {
+			if (!socket.data.session?.user) {
+				socket.emit('userInfo', {
+					pixels: 0,
+					maxPixels: 0,
+					lastTicked: Date.now(),
+					placed: 0
+				});
+
 				return;
 			}
+
+			const userInfo = (
+				await db
+					.select()
+					.from(users)
+					.where(eq(users.id, Number(socket.data.session.user.id)))
+			)[0];
+
+			socket.emit('userInfo', {
+				pixels: userInfo.pixels,
+				maxPixels: Math.floor(userInfo.placed / 100 + 100),
+				lastTicked: userInfo.lastTicked.getTime(),
+				placed: userInfo.placed
+			});
 
 			socket.on('place', (pixels, ack) => {
 				pixels.forEach((pixel, index) => {

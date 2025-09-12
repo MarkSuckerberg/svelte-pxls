@@ -64,8 +64,8 @@ export class PixelCanvas {
 		this.context.fillRect(x, y, 1, 1);
 	}
 
-	public setPixels(pixel: Pixel[]) {
-		pixel.forEach((pixel) => this.setPixel(pixel));
+	public setPixels(pixels: Pixel[]) {
+		Array.prototype.forEach.call(pixels, (pixel) => this.setPixel(pixel));
 	}
 
 	public fromScreenEvent(
