@@ -20,6 +20,7 @@
 	import interact from 'interactjs';
 	import { type Socket } from 'socket.io-client';
 	import { SvelteURL } from 'svelte/reactivity';
+	import type { UserInfo } from '../../user';
 
 	let {
 		pan = $bindable({ x: 0, y: 0 }),
@@ -30,7 +31,8 @@
 		displayData,
 		socket,
 		container,
-		initialColor
+		initialColor,
+		initialInfo
 	}: {
 		pan: Coords;
 		scale: number;
@@ -41,7 +43,12 @@
 		socket: Socket<ServerToClientEvents, ClientToServerEvents>;
 		container: HTMLDivElement;
 		initialColor: number;
+		initialInfo: UserInfo;
 	} = $props();
+
+	const userInfo: UserInfo = {
+		...initialInfo
+	};
 
 	let selectedColorIdx = $state(initialColor || DEFAULT_COLOR_INDEX);
 
@@ -80,6 +87,31 @@
 			onend: () => updateLocation()
 		});
 	interact(editData.canvas).styleCursor(false).on('tap', onTap).on('doubletap', onDoubleTap);
+
+	let nextPixel = $state(Math.floor(20 - (Date.now() - userInfo.lastTicked) / 1000));
+	setTimeout(
+		() => {
+			nextPixel = Math.floor(20 - (Date.now() - userInfo.lastTicked) / 1000);
+			setInterval(() => {
+				nextPixel = Math.floor(20 - (Date.now() - userInfo.lastTicked) / 1000);
+			}, 1000);
+		},
+		//Offset to try to match times with the server
+		(Date.now() - userInfo.lastTicked) % 1000
+	);
+
+	setTimeout(
+		() => {
+			userInfo.pixels = Math.min(userInfo.maxPixels, userInfo.pixels + 1);
+			userInfo.lastTicked = Date.now();
+
+			setInterval(() => {
+				userInfo.pixels = Math.min(userInfo.maxPixels, userInfo.pixels + 1);
+				userInfo.lastTicked = Date.now();
+			}, 20 * 1000);
+		},
+		20 * 1000 - (Date.now() - userInfo.lastTicked)
+	);
 
 	socket.on('map', (mapData, size) => {
 		if (size.height != displayData.height || size.width != displayData.width) {
@@ -161,8 +193,16 @@
 			throw Error('Invalid pixel placement location.');
 		}
 
+		if (displayData.getPixel({ x, y }) === color) {
+			return;
+		}
+
 		if (remove && editData.getPixel({ x, y }) === color) {
 			editData.deletePixel({ x, y });
+			return;
+		}
+
+		if (editData.edits.size >= userInfo.pixels) {
 			return;
 		}
 
@@ -180,6 +220,7 @@
 		setEditing(false);
 		editData.clearEdits();
 		displayData.setPixels(pixels);
+		userInfo.pixels -= pixels.length;
 	}
 
 	async function submitEditsToast() {
@@ -344,6 +385,8 @@
 			onSubmit={() => submitEditsToast()}
 			edits={editData.edits}
 			onClose={() => setEditing(false)}
+			{userInfo}
+			{nextPixel}
 		/>
 	{/if}
 
@@ -353,6 +396,9 @@
 			array={displayData.array}
 			{scale}
 			{center}
+			{socket}
+			{userInfo}
+			{nextPixel}
 			onClose={() => (selectedPixel = undefined)}
 			onDrawButton={() => setEditing(true)}
 		/>

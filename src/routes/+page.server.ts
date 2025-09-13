@@ -5,7 +5,7 @@ export const load: PageServerLoad = ({}) => {
 	const server = globalThis.io;
 
 	return {
-		array: server.data.array,
-		dimensions: { width: server.data.width, height: server.data.height } as Dimensions
+		array: server.grid.array,
+		dimensions: { width: server.grid.width, height: server.grid.height } as Dimensions
 	};
 };

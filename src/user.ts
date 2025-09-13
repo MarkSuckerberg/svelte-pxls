@@ -1,12 +1,104 @@
-interface UserInfo {
-	pixels: number
-	maxPixels: number
-	lastTicked: number
-	placed: number
+import { eq, sql } from 'drizzle-orm';
+import { db, users } from './lib/server/db/index.js';
+
+export interface UserInfo {
+	pixels: number;
+	maxPixels: number;
+	lastTicked: number;
+	placed: number;
 }
 
-class User {
+export class User {
+	public static async exists(id: number) {
+		return (
+			await db.execute<{ isExist: boolean }>(sql`
+			select exists (select 1 from ${users} where ${users.id} = ${id}) as isExist
+		`)
+		)[0].isExist;
+	}
+
+	public static async byId(id: number) {
+		const data = (await db.select().from(users).where(eq(users.id, id)).limit(1))[0];
+
+		if (!data) {
+			return null;
+		}
+
+		return new User(data.id, data.pixels, 100, data.placed, data.lastTicked);
+	}
+
+	public readonly id;
 	private _pixels: number = 100;
 	private _maxPixels: number = 100;
 	private _placed: number = 0;
+	private _lastTicked;
+
+	public constructor(
+		id: number,
+		pixels: number,
+		maxPixels: number,
+		placed: number,
+		lastTicked: Date
+	) {
+		this.id = id;
+		this._pixels = pixels;
+		this._maxPixels = maxPixels;
+		this._placed = placed;
+		this._lastTicked = lastTicked;
+	}
+
+	public cooldown = 20;
+
+	public get Pixels() {
+		const lastTicked = this._lastTicked.getTime();
+
+		const elapsed = Date.now() - lastTicked;
+		const delta = Math.floor(elapsed / 1000 / this.cooldown);
+		this._pixels = Math.min(this._pixels + delta, this.MaxPixels);
+
+		this._lastTicked = new Date(lastTicked + delta * 1000 * this.cooldown);
+		this.sync();
+
+		return this._pixels;
+	}
+
+	public set Pixels(newPixels: number) {
+		this._pixels = newPixels;
+	}
+
+	public get Placed() {
+		return this._placed;
+	}
+
+	public set Placed(newPlaced: number) {
+		this._placed = newPlaced;
+	}
+
+	public get MaxPixels() {
+		return 100 + Math.floor(this._placed / 100);
+	}
+
+	public get LastTicked() {
+		return this._lastTicked;
+	}
+
+	public set LastTicked(tickTime: Date) {
+		this._lastTicked = tickTime;
+	}
+
+	public info(): UserInfo {
+		return {
+			pixels: this.Pixels,
+			maxPixels: this.MaxPixels,
+			lastTicked: this.LastTicked.getTime(),
+			placed: this.Placed
+		};
+	}
+
+	public async sync() {
+		await db
+			.update(users)
+			.set({ pixels: this._pixels, placed: this._placed, lastTicked: this._lastTicked })
+			.where(eq(users.id, this.id));
+	}
 }

@@ -1,4 +1,3 @@
-import type { OAuthConfig, OAuthUserConfig } from '@auth/core/providers';
 import Discord from '@auth/core/providers/discord';
 import Google from '@auth/core/providers/google';
 import Twitch from '@auth/core/providers/twitch';
@@ -7,42 +6,9 @@ import { eq } from 'drizzle-orm';
 import { config } from './config.server.js';
 import { db } from './lib/server/db/index.js';
 import { oauthLinks, users } from './lib/server/db/schema.js';
+import { Tumblr } from './lib/tumblrAuth.js';
+import { User } from './user.js';
 
-interface TumblrProfile extends Record<string, any> {
-	name: string;
-	blogs: {
-		name: string;
-		title: string;
-		primary: boolean | undefined;
-		type: 'public' | 'private';
-	}[];
-}
-
-function Tumblr<P extends TumblrProfile>(options: OAuthUserConfig<P>): OAuthConfig<P> {
-	return {
-		id: 'tumblr',
-		name: 'Tumblr',
-		type: 'oauth',
-		authorization: {
-			url: 'https://www.tumblr.com/oauth2/authorize',
-			params: { scope: 'basic' }
-		},
-		token: 'https://api.tumblr.com/v2/oauth2/token',
-		userinfo: 'https://api.tumblr.com/v2/user/info',
-		profile(profile) {
-			const primaryBlog = profile.blogs.find((blog) => blog.primary);
-
-			return {
-				id: profile.name,
-				name: primaryBlog?.title ?? primaryBlog?.name ?? profile.name
-			};
-		},
-		style: {
-			logo: 'https://assets.tumblr.com/images/favicons/favicon.svg'
-		},
-		options
-	};
-}
 export const authConfig: SvelteKitAuthConfig = {
 	providers: [
 		Discord({
@@ -75,7 +41,7 @@ export const authConfig: SvelteKitAuthConfig = {
 					return false;
 				}
 
-				let userId = (
+				let userId = user.userId || (
 					await tx
 						.select({ id: oauthLinks.userId })
 						.from(oauthLinks)
@@ -87,7 +53,7 @@ export const authConfig: SvelteKitAuthConfig = {
 					userId = (
 						await tx
 							.insert(users)
-							.values({ username: user.name })
+							.values({ username: user.name, avatar: user.image })
 							.returning({ id: users.id })
 					)[0].id;
 				}
@@ -97,19 +63,24 @@ export const authConfig: SvelteKitAuthConfig = {
 					.values({ id: profile.id, userId, data: profile, provider: account.provider })
 					.onConflictDoNothing();
 
-				user.id = userId.toString();
+				user.userId = userId;
 			});
 
 			return true;
 		},
 		jwt({ token, user }) {
-			if (user) {
-				token.id = user.id;
+			if (!token.userId && user?.userId) {
+				token.userId = user.userId;
 			}
+
 			return token;
 		},
 		session({ session, token }) {
-			session.user.id = token.id!;
+			if (!token.userId || !User.exists(token.userId)) {
+				throw new Error('Invalid session!');
+			}
+
+			session.user.userId = token.userId;
 			return session;
 		}
 	}

@@ -1,7 +1,16 @@
 <script lang="ts">
 	import { Brush, ClipboardCopy, X as Exit } from '@lucide/svelte';
+	import { ProgressRing } from '@skeletonlabs/skeleton-svelte';
+	import type { Socket } from 'socket.io-client';
+	import type { UserInfo } from '../../user';
 	import type { ArrayGrid } from '../arrayGrid';
-	import { colorNames, colors, type Coords } from '../types';
+	import {
+		colorNames,
+		colors,
+		type ClientToServerEvents,
+		type Coords,
+		type ServerToClientEvents
+	} from '../types';
 
 	let {
 		selectedPixel,
@@ -9,7 +18,10 @@
 		onDrawButton,
 		onClose,
 		scale = 1,
-		center
+		center,
+		socket,
+		userInfo,
+		nextPixel
 	}: {
 		selectedPixel: Coords | undefined;
 		array: ArrayGrid | undefined;
@@ -17,6 +29,9 @@
 		onDrawButton: (event: MouseEvent) => void;
 		scale: number;
 		center: (coords: Coords) => Coords;
+		socket: Socket<ServerToClientEvents, ClientToServerEvents>;
+		userInfo: UserInfo;
+		nextPixel: number;
 	} = $props();
 
 	let linkCopied: Coords | undefined = $state();
@@ -48,10 +63,15 @@
 >
 	<button class="btn h-20 w-4xl preset-filled-tertiary-500" onclick={onDrawButton}>
 		<Brush />
-		<span>Draw</span>
+		{#if userInfo.pixels >= userInfo.maxPixels}
+			<span>Draw (Full)</span>
+		{:else}
+			<span>Draw ({userInfo.pixels} / {userInfo.maxPixels}, {nextPixel}s)</span>
+			<ProgressRing value={nextPixel} max={19} size="size-12" />
+		{/if}
 	</button>
 	{#if selectedPixel}
-		<div class="h-20 w-full card preset-filled-primary-500 text-center">
+		<div class="w-full card preset-filled-primary-500 text-center">
 			<button
 				class="float-right m-1 btn h-12 w-12 flex-1 p-0"
 				onclick={() => {
@@ -61,23 +81,35 @@
 			>
 				<Exit />
 			</button>
-			<div class="flex h-20 flex-col justify-center">
-				<p>
+			<ul class="flex flex-col justify-center">
+				<li>
 					Selected Pixel: ({selectedPixel.x}, {selectedPixel.y})
-				</p>
-				<p>
+				</li>
+				<li>
 					Color: {selectedPixelColor}
-				</p>
-				<button
-					class="m-auto btn w-1/2 preset-filled"
-					onclick={() => {
-						onCopy();
-					}}
-				>
-					<ClipboardCopy />
-					<span>{linkCopied === selectedPixel ? 'Copied!' : 'Copy Link'}</span>
-				</button>
-			</div>
+				</li>
+				{#await socket.emitWithAck('pixelInfo', selectedPixel) then info}
+					{#if info}
+						<li>
+							Placer: {info?.user}
+						</li>
+						<li>
+							Time: {info ? new Date(info.time) : ''}
+						</li>
+					{/if}
+				{/await}
+				<li>
+					<button
+						class="m-auto btn w-1/2 preset-filled"
+						onclick={() => {
+							onCopy();
+						}}
+					>
+						<ClipboardCopy />
+						<span>{linkCopied === selectedPixel ? 'Copied!' : 'Copy Link'}</span>
+					</button>
+				</li>
+			</ul>
 		</div>
 	{/if}
 </div>

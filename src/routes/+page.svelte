@@ -13,6 +13,7 @@
 	import { Avatar } from '@skeletonlabs/skeleton-svelte';
 	import { io, type Socket } from 'socket.io-client';
 	import { onMount } from 'svelte';
+	import type { UserInfo } from '../user';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -106,7 +107,7 @@
 						Username: {page.data.session.user?.name}
 					</li>
 					<li>
-						ID: {page.data.session.user?.id}
+						ID: {page.data.session.user?.userId}
 					</li>
 					{#if userInfo}
 						<li>
@@ -171,7 +172,7 @@
 	</div>
 </div>
 
-{#if editData && displayData && socket}
+{#if editData && displayData && socket && userInfo}
 	<PageController
 		bind:pan
 		bind:scale
@@ -182,6 +183,7 @@
 		{container}
 		session={data.session}
 		initialColor={data.color}
+		initialInfo={userInfo}
 	/>
 {/if}
 

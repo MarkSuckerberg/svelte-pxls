@@ -1,6 +1,7 @@
 export const DEFAULT_COLOR_INDEX = 8;
 
-import type { Session } from '@auth/sveltekit';
+import type { DefaultSession, Session } from '@auth/sveltekit';
+import type { User, UserInfo } from '../user';
 import colorFile from './colors.json' with { type: 'json' };
 
 export interface Coords {
@@ -22,6 +23,10 @@ export type ServerToClientEvents = {
 
 export type ClientToServerEvents = {
 	place: (pixels: Pixel[], ack: (pixels: Pixel[]) => void) => void;
+	pixelInfo: (
+		location: Coords,
+		ack: (pixel: { user: string; time: number } | null) => void
+	) => void;
 };
 
 export type InterServerEvents = never;
@@ -30,6 +35,12 @@ export type PixelSession = Session;
 
 export type SocketData = {
 	session: PixelSession | null;
+	user: User | null;
+};
+
+export type AuthedSocketData = {
+	session: PixelSession;
+	user: User;
 };
 
 export type Pixel = {
@@ -37,14 +48,6 @@ export type Pixel = {
 	y: number;
 	color: number;
 };
-
-export type PixelLike =
-	| Pixel
-	| {
-			pos: { x: number; y: number };
-			color: number;
-	  }
-	| { pos: [number, number]; color: number };
 
 export function colorToRGB(index: number) {
 	const colorValue = colors[index];
@@ -77,10 +80,22 @@ export function get1DPosition2D(x: number, y: number, width: number) {
 	return (x % width) + y * width;
 }
 
+declare module '@auth/sveltekit' {
+	interface Session {
+		user: {
+			userId: number;
+		} & DefaultSession['user'];
+	}
+
+	interface User {
+		userId?: number;
+	}
+}
+
 declare module '@auth/core/jwt' {
 	/** Returned by the `jwt` callback and `auth`, when using JWT sessions */
 	interface JWT {
-		/** OpenID ID Token */
-		id?: string;
+		/** User ID number stored in the database */
+		userId: number;
 	}
 }

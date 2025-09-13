@@ -1,6 +1,7 @@
 <script lang="ts">
+	import type { EditSet } from '$lib/EditSet.svelte';
 	import { Eraser, X as Exit, Send, Trash } from '@lucide/svelte';
-		import type { EditSet } from '$lib/EditSet';
+	import type { UserInfo } from '../../user';
 	import { colorNames, colors } from '../types';
 
 	let {
@@ -8,13 +9,17 @@
 		clearEdits,
 		edits,
 		onSubmit,
-		onClose
+		onClose,
+		userInfo,
+		nextPixel
 	}: {
 		selectedColorIdx: number;
 		clearEdits: (event: MouseEvent) => void;
 		onSubmit: (event: MouseEvent) => void;
 		onClose: (event: MouseEvent) => void;
 		edits: EditSet;
+		userInfo: UserInfo;
+		nextPixel: number;
 	} = $props();
 </script>
 
@@ -27,6 +32,11 @@
 			<span>Clear {edits.size} Edit{edits.size === 1 ? '' : 's'}</span>
 			<Trash />
 		</button>
+
+		<div class="mx-2">
+			<p>{userInfo.pixels} / {userInfo.maxPixels}</p>
+			<p>{nextPixel}s</p>
+		</div>
 
 		<button
 			class="m-1 btn h-12 flex-12 preset-filled-tertiary-500"
