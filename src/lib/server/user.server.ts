@@ -4,28 +4,23 @@ import { db, users } from './db/index.js';
 
 export class User {
 	public static async exists(id: number) {
-		return (
+		const count = (
 			await db.execute<{ isExist: boolean }>(sql`
 			select exists (select 1 from ${users} where ${users.id} = ${id}) as isExist
 		`)
-		)[0].isExist;
+		).rowCount;
+
+		return count ? count > 0 : false;
 	}
 
-	public static async byId(id: number) {
+	public static async byId(id: string) {
 		const data = (await db.select().from(users).where(eq(users.id, id)).limit(1))[0];
 
 		if (!data) {
 			return null;
 		}
 
-		return new User(
-			data.id,
-			data.pixels,
-			data.placed,
-			data.lastTicked,
-			data.username,
-			data.mod
-		);
+		return new User(data.id, data.pixels, data.placed, data.lastTicked, data.name, data.mod);
 	}
 
 	public readonly id;
@@ -36,7 +31,7 @@ export class User {
 	private _lastTicked;
 
 	public constructor(
-		id: number,
+		id: string,
 		pixels: number,
 		placed: number,
 		lastTicked: Date,

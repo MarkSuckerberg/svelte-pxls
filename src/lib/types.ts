@@ -1,6 +1,6 @@
 export const DEFAULT_COLOR_INDEX = 8;
 
-import type { DefaultSession, Session } from '@auth/sveltekit';
+import type { Session } from '@auth/sveltekit';
 import type { Socket } from 'socket.io-client';
 import colorFile from './colors.json' with { type: 'json' };
 import type { User } from './server/user.server.js';
@@ -20,12 +20,12 @@ export interface Dimensions {
 
 export type IpBan = {
 	ip: string;
-	userId?: number;
+	userId?: string;
 };
 
 export type UserIdBan = {
 	ip?: string;
-	userId: number;
+	userId: string;
 };
 
 export type Ban = IpBan | UserIdBan;
@@ -98,14 +98,8 @@ export function get1DPosition2D(x: number, y: number, width: number) {
 }
 
 declare module '@auth/sveltekit' {
-	interface Session {
-		user: {
-			userId: number;
-		} & DefaultSession['user'];
-	}
-
 	interface User {
-		userId?: number;
+		id: string;
 	}
 }
 
@@ -113,6 +107,6 @@ declare module '@auth/core/jwt' {
 	/** Returned by the `jwt` callback and `auth`, when using JWT sessions */
 	interface JWT {
 		/** User ID number stored in the database */
-		userId: number;
+		userId: string;
 	}
 }

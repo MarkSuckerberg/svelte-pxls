@@ -18,7 +18,7 @@ import type { Http2SecureServer, Http2Server } from 'http2';
 import type { Server as HTTPSServer } from 'https';
 import { Server as SocketServer } from 'socket.io';
 import { authConfig } from './authConfig.server.js';
-import { bans, connections, db, pixelPlacements, users } from './lib/server/db/index.js';
+import { bans, connections, db, pixelMap, pixelPlacements, users } from './lib/server/db/index.js';
 import { User } from './lib/server/user.server.js';
 
 export class PixelSocketServer {
@@ -105,8 +105,8 @@ export class PixelSocketServer {
 				socket.data.session = session.body;
 			}
 
-			if (socket.data.session) {
-				socket.data.user = await User.byId(socket.data.session.user.userId);
+			if (socket.data.session?.user) {
+				socket.data.user = await User.byId(socket.data.session.user.id);
 
 				const address = socket.request.socket.remoteAddress;
 				if (!address) {
@@ -116,19 +116,22 @@ export class PixelSocketServer {
 
 				const ban = (
 					await db.execute<{ reason: string | null }>(
-						sql`SELECT reason FROM ${bans} WHERE ${bans.ip} >>= ${address} OR ${bans.userId} = ${socket.data.session.user.userId}`
+						sql`SELECT reason FROM ${bans} WHERE ${bans.ip} >>= ${address} OR ${bans.userId} = ${socket.data.session.user.id}`
 					)
-				)[0];
+				).rows[0];
 
 				if (ban) {
 					next(new Error('You have been banned for reason: ' + ban.reason));
 					return;
 				}
 
-				await db.insert(connections).values({
-					ip: address,
-					userId: socket.data.session.user.userId
-				});
+				await db
+					.insert(connections)
+					.values({
+						ip: address,
+						userId: socket.data.session.user.id
+					})
+					.onConflictDoNothing();
 			}
 
 			next();
@@ -162,17 +165,15 @@ export class PixelSocketServer {
 				}
 
 				ack({
-					user: info.user.username,
+					user: info.user.name,
 					time: info.pixelPlace.time.getTime()
 				});
 				return;
 			});
 
-			const data = socket.data as AuthedSocketData;
-
 			//TODO: Refactor into user and admin namespaces?
 
-			if (!data) {
+			if (!socket.data.user) {
 				socket.emit('userInfo', {
 					pixels: 0,
 					maxPixels: 0,
@@ -183,6 +184,7 @@ export class PixelSocketServer {
 
 				return;
 			}
+			const data = socket.data as AuthedSocketData;
 
 			socket.emit('userInfo', data.user.info());
 
@@ -192,17 +194,24 @@ export class PixelSocketServer {
 				pixels.forEach(async (pixel, index) => {
 					try {
 						this.grid.set(pixel);
+						await db
+							.insert(pixelMap)
+							.values({ ...pixel, userId: data.user.id })
+							.onConflictDoUpdate({
+								target: [pixelMap.x, pixelMap.y],
+								set: { color: pixel.color }
+							});
 					} catch {
 						pixels.splice(index);
 						return;
 					}
-
-					await db.insert(pixelPlacements).values({
-						...pixel,
-						userId: data.user.id,
-						time: new Date(Date.now())
-					});
 				});
+
+				const pixelData = pixels.map((pixel) => {
+					return { ...pixel, userId: data.user.id };
+				});
+
+				await db.insert(pixelPlacements).values(pixelData);
 
 				data.user.Placed += pixels.length;
 				data.user.Pixels -= pixels.length;

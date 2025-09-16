@@ -85,7 +85,7 @@
 						Username: {page.data.session.user?.name}
 					</li>
 					<li>
-						ID: {page.data.session.user?.userId}
+						ID: {page.data.session.user?.id}
 					</li>
 					{#if userInfo}
 						<li>
