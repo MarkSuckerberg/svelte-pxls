@@ -1,36 +1,52 @@
+import type { Provider } from '@auth/core/providers';
 import Discord from '@auth/core/providers/discord';
 import Google from '@auth/core/providers/google';
 import Twitch from '@auth/core/providers/twitch';
 import type { SvelteKitAuthConfig } from '@auth/sveltekit';
-import { eq } from 'drizzle-orm';
 import { config } from './config.server.js';
 import { db } from './lib/server/db/index.js';
 import { oauthLinks, users } from './lib/server/db/schema.js';
+import { User } from './lib/server/user.server.js';
 import { Tumblr } from './lib/tumblrAuth.js';
-import { User } from './user.js';
 
-export const authConfig: SvelteKitAuthConfig = {
-	providers: [
+const providers: Provider[] = [];
+
+if (config.providers.discord?.enabled) {
+	providers.push(
 		Discord({
 			...config.providers.discord,
 			authorization: {
 				params: { scope: 'identify' }
 			}
-		}),
+		})
+	);
+}
+if (config.providers.google?.enabled) {
+	providers.push(
 		Google({
 			...config.providers.google,
 			authorization: {
 				params: { scope: 'openid profile' }
 			}
-		}),
+		})
+	);
+}
+if (config.providers.twitch?.enabled) {
+	providers.push(
 		Twitch({
 			...config.providers.twitch,
 			authorization: {
 				params: { scope: 'openid profile' }
 			}
-		}),
-		Tumblr(config.providers.tumblr)
-	],
+		})
+	);
+}
+if (config.providers.tumblr?.enabled) {
+	providers.push(Tumblr(config.providers.tumblr));
+}
+
+export const authConfig: SvelteKitAuthConfig = {
+	providers,
 	basePath: '/auth',
 	trustHost: true,
 	secret: config.authSecret,
@@ -41,22 +57,18 @@ export const authConfig: SvelteKitAuthConfig = {
 					return false;
 				}
 
-				let userId = user.userId || (
+				const userId = (
 					await tx
-						.select({ id: oauthLinks.userId })
-						.from(oauthLinks)
-						.where(eq(oauthLinks.id, profile.id))
-						.limit(1)
-				)[0]?.id;
-
-				if (!userId) {
-					userId = (
-						await tx
-							.insert(users)
-							.values({ username: user.name, avatar: user.image })
-							.returning({ id: users.id })
-					)[0].id;
-				}
+						.insert(users)
+						.values({ username: user.name, avatar: user.image })
+						.onConflictDoUpdate({
+							target: users.id,
+							set: {
+								avatar: user.image
+							}
+						})
+						.returning({ id: users.id })
+				)[0].id;
 
 				await tx
 					.insert(oauthLinks)

@@ -2,19 +2,23 @@
     "providers": {
         "discord": {
             "clientId": "client-id",
-            "clientSecret": "client-secret"
+            "clientSecret": "client-secret",
+            "enabled": true
         },
         "google": {
             "clientId": "client-id",
-            "clientSecret": "client-secret"
+            "clientSecret": "client-secret",
+            "enabled": true
         },
         "twitch": {
             "clientId": "client-id",
-            "clientSecret": "client-secret"
+            "clientSecret": "client-secret",
+            "enabled": true
         },
         "tumblr": {
             "clientId": "",
-            "clientSecret": ""
+            "clientSecret": "",
+            "enabled": true
         }
     },
     "size": {

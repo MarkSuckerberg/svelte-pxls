@@ -1,4 +1,6 @@
 import {
+	boolean,
+	inet,
 	integer,
 	jsonb,
 	pgTable,
@@ -15,7 +17,8 @@ export const users = pgTable('user', {
 	registered: timestamp('registered').notNull().defaultNow(),
 	lastTicked: timestamp('lastTicked').notNull().defaultNow(),
 	pixels: integer('pixels').notNull().default(100),
-	placed: integer('placed').notNull().default(0)
+	placed: integer('placed').notNull().default(0),
+	mod: boolean('mod').notNull().default(false)
 });
 
 export const oauthLinks = pgTable(
@@ -32,6 +35,31 @@ export const oauthLinks = pgTable(
 		data: jsonb()
 	},
 	(table) => [primaryKey({ columns: [table.provider, table.id] })]
+);
+
+export const bans = pgTable('bans', {
+	id: serial('id').primaryKey(),
+	ip: inet('ip'),
+	userId: integer('userId').references(() => users.id, {
+		onDelete: 'set null',
+		onUpdate: 'cascade'
+	}),
+	reason: varchar('reason')
+});
+
+export const connections = pgTable(
+	'connections',
+	{
+		timestamp: timestamp('latestLogin').notNull().defaultNow(),
+		ip: inet('ip').notNull(),
+		userId: integer('userId')
+			.references(() => users.id, {
+				onDelete: 'cascade',
+				onUpdate: 'cascade'
+			})
+			.notNull()
+	},
+	(table) => [primaryKey({ columns: [table.ip, table.timestamp] })]
 );
 
 export const pixelPlacements = pgTable(

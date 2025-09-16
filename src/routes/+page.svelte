@@ -3,17 +3,12 @@
 	import Grid from '$lib/components/Grid.svelte';
 	import PageController from '$lib/components/PageController.svelte';
 	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
-	import {
-		type ClientToServerEvents,
-		type Dimensions,
-		type Pixel,
-		type ServerToClientEvents
-	} from '$lib/types';
+	import { type ClientSocket, type Dimensions, type Pixel } from '$lib/types';
+	import type { UserInfo } from '$lib/userinfo';
 	import { BadgeQuestionMark } from '@lucide/svelte';
 	import { Avatar } from '@skeletonlabs/skeleton-svelte';
-	import { io, type Socket } from 'socket.io-client';
+	import { io } from 'socket.io-client';
 	import { onMount } from 'svelte';
-	import type { UserInfo } from '../user';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -30,7 +25,7 @@
 
 	let displayData: PixelCanvas | undefined = $state();
 	let editData: PixelEditCanvas | undefined = $state();
-	let socket: Socket<ServerToClientEvents, ClientToServerEvents> | undefined = $state();
+	let socket: ClientSocket | undefined = $state();
 
 	let grid = $state(false);
 	let moving = $state(false);
@@ -38,7 +33,7 @@
 	let currentUsers: string[] = $state([]);
 
 	async function startSocket() {
-		const getSocket: Socket<ServerToClientEvents, ClientToServerEvents> = io({
+		const getSocket: ClientSocket = io({
 			rememberUpgrade: true
 		});
 
@@ -73,23 +68,6 @@
 	});
 </script>
 
-<div class="canvas-container main">
-	{#if displayData && grid}
-		<Grid {scale} {pan} {displayData} />
-	{/if}
-	<div class="canvas-inner main">
-		<canvas
-			width={data.dimensions.width}
-			height={data.dimensions.height}
-			bind:this={canvas}
-			class="main-canvas display-canvas"
-			style:transform={`translate(${scale <= 1 ? Math.round(pan.x) : pan.x}px, ${scale <= 1 ? Math.round(pan.y) : pan.y}px)`}
-			style:zoom={`${scale * 100}%`}
-		>
-		</canvas>
-	</div>
-</div>
-
 <div class="absolute z-10 m-3">
 	{#if page.data.session}
 		<button onclick={() => (showUser = !showUser)}>
@@ -101,7 +79,7 @@
 
 		{#if showUser}
 			<div class="card preset-filled-surface-500 p-2">
-				<p>Signed in as:</p>
+				<h3>Signed in as:</h3>
 				<ul>
 					<li>
 						Username: {page.data.session.user?.name}
@@ -110,6 +88,9 @@
 						ID: {page.data.session.user?.userId}
 					</li>
 					{#if userInfo}
+						<li>
+							Level: {userInfo.maxPixels - 100}
+						</li>
 						<li>
 							Pixels: {userInfo.pixels} / {userInfo.maxPixels}
 						</li>
@@ -144,6 +125,22 @@
 	{/if}
 </div>
 
+<div class="canvas-container main">
+	{#if displayData && grid}
+		<Grid {scale} {pan} {displayData} />
+	{/if}
+	<div class="canvas-inner main">
+		<canvas
+			width={data.dimensions.width}
+			height={data.dimensions.height}
+			bind:this={canvas}
+			class="main-canvas display-canvas"
+			style:transform={`translate(${scale <= 1 ? Math.round(pan.x) : pan.x}px, ${scale <= 1 ? Math.round(pan.y) : pan.y}px)`}
+			style:zoom={`${scale * 100}%`}
+		></canvas>
+	</div>
+</div>
+
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	class="canvas-container"
@@ -155,7 +152,7 @@
 >
 	<div
 		class="canvas-inner"
-		style="filter: drop-shadow(1px 1px 0px red) drop-shadow(-1px -1px 0px red) drop-shadow(1px
+		style="filter: drop-shadow(1px 1px 0px red) drop-shadow(-1px -1px 0px red) drop-shadow(1px -1px 0px red) drop-shadow(-1px 1px 0px red) drop-shadow(1px
 		1px 10px black)"
 	>
 		<canvas
@@ -167,8 +164,7 @@
 			style:zoom={`${scale * 100}%`}
 			style:opacity={editing ? '100%' : '10%'}
 			style:cursor={moving ? 'grabbing' : editing ? 'crosshair' : 'default'}
-		>
-		</canvas>
+		></canvas>
 	</div>
 </div>
 

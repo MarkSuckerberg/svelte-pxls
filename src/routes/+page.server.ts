@@ -6,6 +6,6 @@ export const load: PageServerLoad = ({}) => {
 
 	return {
 		array: server.grid.array,
-		dimensions: { width: server.grid.width, height: server.grid.height } as Dimensions
+		dimensions: { width: server.grid.width, height: server.grid.height } satisfies Dimensions
 	};
 };

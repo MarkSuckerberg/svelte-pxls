@@ -14,10 +14,10 @@
 
 {#if reticlePosition}
 	<div
-		style:width={scale - 1 + 'px'}
-		style:height={scale - 1 + 'px'}
-		style:transform={`translate(${reticlePosition.x - 1}px, ${reticlePosition.y - 1}px)`}
-		style="pointer-events:none; position:fixed; box-sizing: content-box; border: 2px solid black; margin: 0;"
+		style:width={scale + 'px'}
+		style:height={scale + 'px'}
+		style:transform={`translate(${reticlePosition.x}px, ${reticlePosition.y}px)`}
+		style="pointer-events:none; position:fixed; box-sizing: content-box; margin: 0;"
 		style:background-color={`#${colors[selectedColorIdx].toString(16).padStart(8, '0')}`}
 		style:opacity="50%"
 	></div>

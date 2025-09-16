@@ -12,14 +12,14 @@ import {
 
 import type { ResponseInternal } from '@auth/core/types';
 import type { Session } from '@auth/sveltekit';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import type { Server } from 'http';
 import type { Http2SecureServer, Http2Server } from 'http2';
 import type { Server as HTTPSServer } from 'https';
 import { Server as SocketServer } from 'socket.io';
 import { authConfig } from './authConfig.server.js';
-import { db, pixelPlacements, users } from './lib/server/db/index.js';
-import { User } from './user.js';
+import { bans, connections, db, pixelPlacements, users } from './lib/server/db/index.js';
+import { User } from './lib/server/user.server.js';
 
 export class PixelSocketServer {
 	public static async fromFile(
@@ -78,7 +78,13 @@ export class PixelSocketServer {
 				headers
 			};
 
-			const url = createActionURL('session', 'http', headers, process.env, authConfig);
+			const url = createActionURL(
+				'session',
+				socket.handshake.secure ? 'https' : 'http',
+				headers,
+				process.env,
+				authConfig
+			);
 
 			const session: ResponseInternal | Response = await Auth(
 				new Request(url, req),
@@ -100,7 +106,29 @@ export class PixelSocketServer {
 			}
 
 			if (socket.data.session) {
-				socket.data.user = await User.byId(socket.data.session?.user.userId);
+				socket.data.user = await User.byId(socket.data.session.user.userId);
+
+				const address = socket.request.socket.remoteAddress;
+				if (!address) {
+					next();
+					return;
+				}
+
+				const ban = (
+					await db.execute<{ reason: string | null }>(
+						sql`SELECT reason FROM ${bans} WHERE ${bans.ip} >>= ${address} OR ${bans.userId} = ${socket.data.session.user.userId}`
+					)
+				)[0];
+
+				if (ban) {
+					next(new Error('You have been banned for reason: ' + ban.reason));
+					return;
+				}
+
+				await db.insert(connections).values({
+					ip: address,
+					userId: socket.data.session.user.userId
+				});
 			}
 
 			next();
@@ -142,12 +170,15 @@ export class PixelSocketServer {
 
 			const data = socket.data as AuthedSocketData;
 
+			//TODO: Refactor into user and admin namespaces?
+
 			if (!data) {
 				socket.emit('userInfo', {
 					pixels: 0,
 					maxPixels: 0,
 					lastTicked: Date.now(),
-					placed: 0
+					placed: 0,
+					mod: false
 				});
 
 				return;
@@ -181,6 +212,25 @@ export class PixelSocketServer {
 				ack(pixels);
 
 				toFile(this.grid, 'board2.dat');
+			});
+
+			if (!data.user.mod) {
+				return;
+			}
+
+			socket.on('ban', async (ban, ack) => {
+				const banId = (
+					await db
+						.insert(bans)
+						.values({ ip: ban.ip, userId: ban.userId })
+						.returning({ id: bans.id })
+				)[0].id;
+
+				if (!banId) {
+					ack();
+					return;
+				}
+				ack(banId);
 			});
 		});
 	}

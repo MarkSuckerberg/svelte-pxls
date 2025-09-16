@@ -1,4 +1,11 @@
 services:
+    pixels:
+        build: .
+        restart: unless-stopped
+        ports:
+            - 3000:3000
+        volumes:
+          - pixelsdata:/
     db:
         image: postgres
         restart: always
@@ -8,7 +15,7 @@ services:
             POSTGRES_USER: root
             POSTGRES_PASSWORD: mysecretpassword
             POSTGRES_DB: local
-        volumes:
-            - pgdata:/var/lib/postgresql/data
+        #volumes:
+        #    - pgdata:/var/lib/postgresql/data
 volumes:
     pgdata:

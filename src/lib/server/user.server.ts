@@ -1,12 +1,6 @@
 import { eq, sql } from 'drizzle-orm';
-import { db, users } from './lib/server/db/index.js';
-
-export interface UserInfo {
-	pixels: number;
-	maxPixels: number;
-	lastTicked: number;
-	placed: number;
-}
+import type { UserInfo } from '../userinfo.js';
+import { db, users } from './db/index.js';
 
 export class User {
 	public static async exists(id: number) {
@@ -24,27 +18,37 @@ export class User {
 			return null;
 		}
 
-		return new User(data.id, data.pixels, 100, data.placed, data.lastTicked);
+		return new User(
+			data.id,
+			data.pixels,
+			data.placed,
+			data.lastTicked,
+			data.username,
+			data.mod
+		);
 	}
 
 	public readonly id;
+	public readonly mod: boolean = false;
+	public readonly username: string;
 	private _pixels: number = 100;
-	private _maxPixels: number = 100;
 	private _placed: number = 0;
 	private _lastTicked;
 
 	public constructor(
 		id: number,
 		pixels: number,
-		maxPixels: number,
 		placed: number,
-		lastTicked: Date
+		lastTicked: Date,
+		username: string,
+		mod = false
 	) {
 		this.id = id;
 		this._pixels = pixels;
-		this._maxPixels = maxPixels;
 		this._placed = placed;
 		this._lastTicked = lastTicked;
+		this.username = username;
+		this.mod = mod;
 	}
 
 	public cooldown = 20;
@@ -91,7 +95,8 @@ export class User {
 			pixels: this.Pixels,
 			maxPixels: this.MaxPixels,
 			lastTicked: this.LastTicked.getTime(),
-			placed: this.Placed
+			placed: this.Placed,
+			mod: this.mod
 		};
 	}
 

@@ -1,16 +1,9 @@
 <script lang="ts">
 	import { Brush, ClipboardCopy, X as Exit } from '@lucide/svelte';
-	import { ProgressRing } from '@skeletonlabs/skeleton-svelte';
-	import type { Socket } from 'socket.io-client';
-	import type { UserInfo } from '../../user';
 	import type { ArrayGrid } from '../arrayGrid';
-	import {
-		colorNames,
-		colors,
-		type ClientToServerEvents,
-		type Coords,
-		type ServerToClientEvents
-	} from '../types';
+	import { colorNames, colors, type ClientSocket, type Coords } from '../types';
+	import type { UserInfo } from '../userinfo';
+	import PixelCount from './PixelCount.svelte';
 
 	let {
 		selectedPixel,
@@ -29,7 +22,7 @@
 		onDrawButton: (event: MouseEvent) => void;
 		scale: number;
 		center: (coords: Coords) => Coords;
-		socket: Socket<ServerToClientEvents, ClientToServerEvents>;
+		socket: ClientSocket;
 		userInfo: UserInfo;
 		nextPixel: number;
 	} = $props();
@@ -63,12 +56,9 @@
 >
 	<button class="btn h-20 w-4xl preset-filled-tertiary-500" onclick={onDrawButton}>
 		<Brush />
-		{#if userInfo.pixels >= userInfo.maxPixels}
-			<span>Draw (Full)</span>
-		{:else}
-			<span>Draw ({userInfo.pixels} / {userInfo.maxPixels}, {nextPixel}s)</span>
-			<ProgressRing value={nextPixel} max={19} size="size-12" />
-		{/if}
+		<span>Draw</span>
+		<span>-</span>
+		<PixelCount {userInfo} {nextPixel} showRing />
 	</button>
 	{#if selectedPixel}
 		<div class="w-full card preset-filled-primary-500 text-center">

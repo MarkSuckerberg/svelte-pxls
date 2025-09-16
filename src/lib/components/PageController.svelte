@@ -8,19 +8,18 @@
 	import { toaster } from '$lib/toaster';
 	import {
 		DEFAULT_COLOR_INDEX,
-		type ClientToServerEvents,
+		type ClientSocket,
 		type Coords,
 		type Pixel,
-		type PixelSession,
-		type ServerToClientEvents
+		type PixelSession
 	} from '$lib/types';
 	import type { GestureEvent } from '@interactjs/actions/gesture/plugin';
 	import type { SignalArgs } from '@interactjs/core/scope';
 	import { LogIn } from '@lucide/svelte';
 	import interact from 'interactjs';
-	import { type Socket } from 'socket.io-client';
 	import { SvelteURL } from 'svelte/reactivity';
-	import type { UserInfo } from '../../user';
+	import type { UserInfo } from '../userinfo';
+	import ModMenu from './ModMenu.svelte';
 
 	let {
 		pan = $bindable({ x: 0, y: 0 }),
@@ -40,7 +39,7 @@
 		session: PixelSession | null;
 		editData: PixelEditCanvas;
 		displayData: PixelCanvas;
-		socket: Socket<ServerToClientEvents, ClientToServerEvents>;
+		socket: ClientSocket;
 		container: HTMLDivElement;
 		initialColor: number;
 		initialInfo: UserInfo;
@@ -403,11 +402,16 @@
 			onDrawButton={() => setEditing(true)}
 		/>
 	{/if}
+
+	{#if userInfo.mod}
+		<ModMenu {socket} />
+	{/if}
 {:else}
 	<div class="absolute right-0 bottom-0 left-0 mx-auto w-2xl">
 		<form method="POST" action="/signin">
 			<button class="btn w-full preset-filled-primary-500" type="submit">
-				<LogIn /><span>Sign in</span>
+				<LogIn />
+				<span>Sign in</span>
 			</button>
 		</form>
 	</div>

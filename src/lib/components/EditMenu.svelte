@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { EditSet } from '$lib/EditSet.svelte';
+	import type { UserInfo } from '$lib/userinfo';
 	import { Eraser, X as Exit, Send, Trash } from '@lucide/svelte';
-	import type { UserInfo } from '../../user';
 	import { colorNames, colors } from '../types';
+	import PixelCount from './PixelCount.svelte';
 
 	let {
 		selectedColorIdx = $bindable(),
@@ -33,9 +34,8 @@
 			<Trash />
 		</button>
 
-		<div class="mx-2">
-			<p>{userInfo.pixels} / {userInfo.maxPixels}</p>
-			<p>{nextPixel}s</p>
+		<div class="mx-2 flex-1">
+			<PixelCount {userInfo} {nextPixel} showBar usedPixels={edits.size} />
 		</div>
 
 		<button
@@ -48,7 +48,7 @@
 			<Send />
 		</button>
 
-		<button class="m-1 btn h-12 w-12 flex-1 p-0" onclick={onClose}>
+		<button class="m-1 btn h-12 w-12 p-0" onclick={onClose}>
 			<Exit />
 		</button>
 	</div>

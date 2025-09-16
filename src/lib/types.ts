@@ -1,8 +1,12 @@
 export const DEFAULT_COLOR_INDEX = 8;
 
 import type { DefaultSession, Session } from '@auth/sveltekit';
-import type { User, UserInfo } from '../user';
+import type { Socket } from 'socket.io-client';
 import colorFile from './colors.json' with { type: 'json' };
+import type { User } from './server/user.server.js';
+import type { UserInfo } from './userinfo.js';
+
+export type ClientSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 export interface Coords {
 	x: number;
@@ -13,6 +17,18 @@ export interface Dimensions {
 	width: number;
 	height: number;
 }
+
+export type IpBan = {
+	ip: string;
+	userId?: number;
+};
+
+export type UserIdBan = {
+	ip?: string;
+	userId: number;
+};
+
+export type Ban = IpBan | UserIdBan;
 
 export type ServerToClientEvents = {
 	map: (map: Uint8Array, size: Dimensions) => void;
@@ -27,6 +43,7 @@ export type ClientToServerEvents = {
 		location: Coords,
 		ack: (pixel: { user: string; time: number } | null) => void
 	) => void;
+	ban: (ban: Ban, ack: (banId?: number) => void) => void;
 };
 
 export type InterServerEvents = never;

@@ -5,6 +5,8 @@ import type { Dimensions } from './lib/types.js';
 interface ProviderCredentials {
 	clientId: string;
 	clientSecret: string;
+	enabled: boolean;
+	registrationDisabled?: boolean;
 }
 
 interface Config {
@@ -15,16 +17,16 @@ interface Config {
 		url: string;
 	};
 	providers: {
-		discord: ProviderCredentials;
-		google: ProviderCredentials;
-		tumblr: ProviderCredentials;
-		twitch: ProviderCredentials;
+		discord?: ProviderCredentials;
+		google?: ProviderCredentials;
+		tumblr?: ProviderCredentials;
+		twitch?: ProviderCredentials;
 	};
 }
 
 export let config: Config;
 try {
-	config = userConfig as Config;
+	config = userConfig satisfies Config;
 } catch (error) {
 	config = defaultConfig;
 }
