@@ -135,6 +135,8 @@
 			height={data.dimensions.height}
 			bind:this={canvas}
 			class="main-canvas display-canvas"
+			style:width={`${data.dimensions.width}px`}
+			style:height={`${data.dimensions.height}px`}
 			style:transform={`translate(${scale <= 1 ? Math.round(pan.x) : pan.x}px, ${scale <= 1 ? Math.round(pan.y) : pan.y}px)`}
 			style:zoom={`${scale * 100}%`}
 		></canvas>
@@ -161,6 +163,8 @@
 			bind:this={userCanvas}
 			class="main-canvas user-canvas"
 			style:transform={`translate(${scale <= 1 ? Math.round(pan.x) : pan.x}px, ${scale <= 1 ? Math.round(pan.y) : pan.y}px)`}
+			style:width={`${data.dimensions.width}px`}
+			style:height={`${data.dimensions.height}px`}
 			style:zoom={`${scale * 100}%`}
 			style:opacity={editing ? '100%' : '10%'}
 			style:cursor={moving ? 'grabbing' : editing ? 'crosshair' : 'default'}

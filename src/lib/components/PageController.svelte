@@ -400,6 +400,7 @@
 			{nextPixel}
 			onClose={() => (selectedPixel = undefined)}
 			onDrawButton={() => setEditing(true)}
+			canvas={displayData.canvas}
 		/>
 	{/if}
 

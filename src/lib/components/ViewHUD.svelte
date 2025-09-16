@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Brush, ClipboardCopy, X as Exit } from '@lucide/svelte';
+	import { Brush, ClipboardCopy, X as Exit, Save } from '@lucide/svelte';
 	import type { ArrayGrid } from '../arrayGrid';
 	import { colorNames, colors, type ClientSocket, type Coords } from '../types';
 	import type { UserInfo } from '../userinfo';
@@ -14,7 +14,8 @@
 		center,
 		socket,
 		userInfo,
-		nextPixel
+		nextPixel,
+		canvas
 	}: {
 		selectedPixel: Coords | undefined;
 		array: ArrayGrid | undefined;
@@ -25,6 +26,7 @@
 		socket: ClientSocket;
 		userInfo: UserInfo;
 		nextPixel: number;
+		canvas: HTMLCanvasElement;
 	} = $props();
 
 	let linkCopied: Coords | undefined = $state();
@@ -48,6 +50,29 @@
 		const centerPan = center(selectedPixel);
 		const url = new URL(`/?x=${centerPan.x}&y=${centerPan.y}&s=${scale}`).toString();
 		navigator.clipboard.writeText(url);
+	}
+
+	//TODO: Partial canvas saves using ctx.getImageData()
+
+	function onSave() {
+		canvas.toBlob((blob) => {
+			if (!blob) {
+				return;
+			}
+
+			const link = URL.createObjectURL(blob);
+			const anchor = document.createElement('a');
+			const now = new Date(Date.now());
+
+			anchor.href = link;
+			anchor.download = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-pixels.png`;
+			anchor.type = 'image/png';
+
+			anchor.click();
+
+			anchor.remove();
+			URL.revokeObjectURL(link);
+		});
 	}
 </script>
 
@@ -90,13 +115,22 @@
 				{/await}
 				<li>
 					<button
-						class="m-auto btn w-1/2 preset-filled"
+						class="m-auto btn w-1/4 preset-filled"
 						onclick={() => {
 							onCopy();
 						}}
 					>
 						<ClipboardCopy />
 						<span>{linkCopied === selectedPixel ? 'Copied!' : 'Copy Link'}</span>
+					</button>
+					<button
+						class="m-auto btn w-1/4 preset-filled-secondary-100-900"
+						onclick={() => {
+							onSave();
+						}}
+					>
+						<Save />
+						<span>Save Screenshot</span>
 					</button>
 				</li>
 			</ul>
