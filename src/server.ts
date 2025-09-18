@@ -10,6 +10,6 @@ const server = app.listen(PORT, () => {
 });
 app.use(handler);
 
-PixelSocketServer.fromFile('board2.dat', server, config.size).then((io) => {
+PixelSocketServer.fromFile(config.boardFile, server, config.size).then((io) => {
 	globalThis.io = io;
 });

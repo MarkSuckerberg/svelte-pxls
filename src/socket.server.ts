@@ -1,6 +1,6 @@
 import { Auth, createActionURL } from '@auth/core';
 import { ArrayGrid } from './lib/arrayGrid.js';
-import { fromFile, toFile } from './lib/server/arrayGrid.server.js';
+import { fromFile, fromLegacyFile, toFile } from './lib/server/arrayGrid.server.js';
 import {
 	type AuthedSocketData,
 	type ClientToServerEvents,
@@ -27,7 +27,10 @@ export class PixelSocketServer {
 		server: Server | HTTPSServer | Http2SecureServer | Http2Server,
 		size: Dimensions
 	) {
-		const data = (await fromFile(file)) || new ArrayGrid(size);
+		const data =
+			(await fromFile(file)) ||
+			(await fromLegacyFile('data/baseMap.dat', size)) ||
+			new ArrayGrid(size);
 
 		return new PixelSocketServer(data, server);
 	}

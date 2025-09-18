@@ -16,7 +16,7 @@ const socketIo: Plugin = {
 
 		try {
 			globalThis.io = await PixelSocketServer.fromFile(
-				'board2.dat',
+				'data/board.dat',
 				server.httpServer,
 				config.size
 			);
@@ -32,7 +32,7 @@ const socketIo: Plugin = {
 
 		try {
 			globalThis.io = await PixelSocketServer.fromFile(
-				'board2.dat',
+				'data/board.dat',
 				server.httpServer,
 				config.size
 			);

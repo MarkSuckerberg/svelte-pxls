@@ -1,14 +1,32 @@
 services:
+    pixels:
+        build: .
+        entrypoint: '/bin/sh'
+        command: ['-c', 'npx drizzle-kit migrate && node dist/server.js']
+        restart: unless-stopped
+        ports:
+            - 3000:3000
+        environment:
+            - ORIGIN=http://localhost:3000
+            - NODE_ENV=production
+        volumes:
+            - ./data:/app/data
+        depends_on:
+            db:
+                condition: service_healthy
     db:
         image: postgres
         restart: always
-        ports:
-            - 5432:5432
         environment:
             POSTGRES_USER: root
             POSTGRES_PASSWORD: mysecretpassword
-            POSTGRES_DB: local
-        #volumes:
-        #    - pgdata:/var/lib/postgresql/data
+            POSTGRES_DB: pixels
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+        healthcheck:
+            test: ['CMD-SHELL', "sh -ec 'pg_isready -d pixels'"]
+            interval: 10s
+            timeout: 3s
+            retries: 3
 volumes:
     pgdata:

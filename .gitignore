@@ -30,4 +30,5 @@ vite.config.ts.timestamp-*
 *.dat
 *.dat.bak
 
-config.json
+config.yml
+data/config.yml

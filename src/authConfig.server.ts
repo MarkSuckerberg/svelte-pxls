@@ -14,30 +14,21 @@ const providers: Provider[] = [];
 if (config.providers.discord?.enabled) {
 	providers.push(
 		Discord({
-			...config.providers.discord,
-			authorization: {
-				params: { scope: 'identify' }
-			}
+			...config.providers.discord
 		})
 	);
 }
 if (config.providers.google?.enabled) {
 	providers.push(
 		Google({
-			...config.providers.google,
-			authorization: {
-				params: { scope: 'openid profile' }
-			}
+			...config.providers.google
 		})
 	);
 }
 if (config.providers.twitch?.enabled) {
 	providers.push(
 		Twitch({
-			...config.providers.twitch,
-			authorization: {
-				params: { scope: 'openid profile' }
-			}
+			...config.providers.twitch
 		})
 	);
 }
@@ -47,7 +38,7 @@ if (config.providers.tumblr?.enabled) {
 
 export type UserProfile = DiscordProfile | GoogleProfile | TwitchProfile | TumblrProfile;
 
-export const authConfig: SvelteKitAuthConfig = {
+export const authConfig = {
 	adapter: DrizzleAdapter(db, {
 		usersTable: users,
 		accountsTable: accounts
@@ -80,4 +71,4 @@ export const authConfig: SvelteKitAuthConfig = {
 			return session;
 		}
 	}
-};
+} satisfies SvelteKitAuthConfig;

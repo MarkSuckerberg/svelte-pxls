@@ -5,7 +5,7 @@ import type { Dimensions } from '../types.js';
 const VERSION = 1;
 const HEADER_SIZE = 6;
 
-export async function fromFile(file: string) {
+export async function fromFile(file: string, backup = true) {
 	return readFile(file)
 		.then(async (fileData) => {
 			try {
@@ -33,8 +33,11 @@ export async function fromFile(file: string) {
 					new Uint8Array(fileData.buffer, headerSize, width * height)
 				);
 			} catch (error) {
-				await copyFile(file, `${file}.bak`);
-				console.error('Error reading map save. File backed up.', error);
+				console.error(`Error reading ${file}.`, error);
+				if (backup) {
+					await copyFile(file, `${file}.bak`);
+					console.log(`${file} backed up.`)
+				}
 			}
 		})
 		.catch(() => {

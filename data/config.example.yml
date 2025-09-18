@@ -1,0 +1,32 @@
+---
+# Array of OAuth providers for login
+providers:
+  discord:
+    clientId: client-id
+    clientSecret: client-secret
+    enabled: true
+  google:
+    clientId: client-id
+    clientSecret: client-secret
+    enabled: true
+  twitch:
+    clientId: client-id
+    clientSecret: client-secret
+    enabled: true
+  tumblr:
+    clientId: ""
+    clientSecret: ""
+    enabled: true
+# Size of the generated board, or the size presumed for the basemap
+size:
+  width: 5000
+  height: 500
+# Port the server will run on
+port: 3000
+# Secret used for authentecation encryption/decryption
+authSecret: secret-here
+# Postgresql database connection config
+db:
+  url: postgresql://localhost:5432/pixels
+# Name of the board file to save to
+boardFile: data/board.dat

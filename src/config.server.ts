@@ -1,5 +1,5 @@
-import defaultConfig from '../config.example.json' with { type: 'json' };
-import userConfig from '../config.json' with { type: 'json' };
+import fs from 'fs';
+import YAML from 'yaml';
 import type { Dimensions } from './lib/types.js';
 
 interface ProviderCredentials {
@@ -10,6 +10,7 @@ interface ProviderCredentials {
 }
 
 interface Config {
+	boardFile: string;
 	size: Dimensions;
 	port: number;
 	authSecret: string;
@@ -24,9 +25,13 @@ interface Config {
 	};
 }
 
-export let config: Config;
+const example = fs.readFileSync('./data/config.example.yml', 'utf8');
+export let config: Config = YAML.parse(example) satisfies Config;
+
 try {
-	config = userConfig satisfies Config;
+	const file = fs.readFileSync('./data/config.yml', 'utf8');
+	const userConf = YAML.parse(file) satisfies Config;
+	config = { ...config, ...userConf };
 } catch (error) {
-	config = defaultConfig;
+	console.error('Error loading user config:', error);
 }
