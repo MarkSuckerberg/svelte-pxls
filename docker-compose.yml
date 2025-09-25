@@ -2,12 +2,16 @@ services:
     pixels:
         build: .
         entrypoint: "/bin/sh"
-        command: ["-c", "npx drizzle-kit migrate && node dist/server.js"]
+        command:
+            [
+                "-c",
+                "npx drizzle-kit generate && npx drizzle-kit migrate && node dist/server.js",
+            ]
         restart: unless-stopped
         ports:
-            - 3000:3000
+            - 3080:3000
         environment:
-            - ORIGIN=http://localhost:3000
+            - ORIGIN=http://localhost:3080
             - NODE_ENV=production
         volumes:
             - ./data:/app/data
