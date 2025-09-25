@@ -249,7 +249,7 @@ export class PixelSocketServer {
 				socket.broadcast.emit('pixelUpdate', pixels);
 				ack(pixels);
 
-				toFile(this.grid, 'board2.dat');
+				toFile(this.grid, 'data/board.dat');
 			});
 
 			socket.on('chat', async (message) => {
