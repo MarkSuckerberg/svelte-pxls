@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import Grid from '$lib/components/Grid.svelte';
 	import PageController from '$lib/components/PageController.svelte';
+	import SignIn from '$lib/components/SignIn.svelte';
 	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
 	import { type ClientSocket, type Dimensions, type Pixel } from '$lib/types';
 	import type { UserInfo } from '$lib/userinfo';
@@ -115,13 +116,11 @@
 			</div>
 		{/if}
 	{:else}
-		<form action="/signin" method="POST">
-			<button type="submit" title="Sign In">
-				<Avatar name="Guest">
-					<BadgeQuestionMark />
-				</Avatar>
-			</button>
-		</form>
+		<SignIn>
+			<Avatar name="Guest">
+				<BadgeQuestionMark />
+			</Avatar>
+		</SignIn>
 	{/if}
 </div>
 

@@ -3,6 +3,7 @@ import { ArrayGrid } from './lib/arrayGrid.js';
 import { fromFile, fromLegacyFile, toFile } from './lib/server/arrayGrid.server.js';
 import {
 	type AuthedSocketData,
+	type ChatMessage,
 	type ClientToServerEvents,
 	type Dimensions,
 	type InterServerEvents,
@@ -12,13 +13,21 @@ import {
 
 import type { ResponseInternal } from '@auth/core/types';
 import type { Session } from '@auth/sveltekit';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import type { Server } from 'http';
 import type { Http2SecureServer, Http2Server } from 'http2';
 import type { Server as HTTPSServer } from 'https';
 import { Server as SocketServer } from 'socket.io';
 import { authConfig } from './authConfig.server.js';
-import { bans, connections, db, pixelMap, pixelPlacements, users } from './lib/server/db/index.js';
+import {
+	bans,
+	chat,
+	connections,
+	db,
+	pixelMap,
+	pixelPlacements,
+	users
+} from './lib/server/db/index.js';
 import { User } from './lib/server/user.server.js';
 
 export class PixelSocketServer {
@@ -174,6 +183,23 @@ export class PixelSocketServer {
 				return;
 			});
 
+			db.select()
+				.from(chat)
+				.innerJoin(users, eq(chat.userId, users.id))
+				.orderBy(desc(chat.timestamp))
+				.limit(socket.data.user ? 200 : 50)
+				.then((messages) => {
+					const result = messages
+						.map((message) => ({
+							username: message.user.name,
+							message: message.chat.message,
+							timestamp: message.chat.timestamp.getTime()
+						}))
+						.reverse() satisfies ChatMessage[];
+
+					socket.emit('chat', result);
+				});
+
 			//TODO: Refactor into user and admin namespaces?
 
 			if (!socket.data.user) {
@@ -224,6 +250,18 @@ export class PixelSocketServer {
 				ack(pixels);
 
 				toFile(this.grid, 'board2.dat');
+			});
+
+			socket.on('chat', async (message) => {
+				await db.insert(chat).values({ message, userId: data.user.id });
+
+				this.io.emit('chat', [
+					{
+						username: data.user.username,
+						message,
+						timestamp: Date.now()
+					}
+				]);
 			});
 
 			if (!data.user.mod) {

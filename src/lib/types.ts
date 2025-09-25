@@ -30,11 +30,18 @@ export type UserIdBan = {
 
 export type Ban = IpBan | UserIdBan;
 
+export interface ChatMessage {
+	username: string;
+	message: string;
+	timestamp: number;
+}
+
 export type ServerToClientEvents = {
 	map: (map: Uint8Array, size: Dimensions) => void;
 	pixelUpdate: (update: Pixel[]) => void;
 	users: (users: string[]) => void;
 	userInfo: (userInfo: UserInfo) => void;
+	chat: (message: ChatMessage[]) => void;
 };
 
 export type ClientToServerEvents = {
@@ -44,6 +51,7 @@ export type ClientToServerEvents = {
 		ack: (pixel: { user: string; time: number } | null) => void
 	) => void;
 	ban: (ban: Ban, ack: (banId?: number) => void) => void;
+	chat: (message: string) => void;
 };
 
 export type InterServerEvents = never;

@@ -4,7 +4,6 @@ import devtoolsJson from 'vite-plugin-devtools-json';
 
 import { defineConfig, type Plugin, type PreviewServer, type ViteDevServer } from 'vite';
 
-import { config } from './src/config.server';
 import { PixelSocketServer } from './src/socket.server';
 
 const socketIo: Plugin = {
@@ -14,9 +13,11 @@ const socketIo: Plugin = {
 			return;
 		}
 
+		const config = (await import('./src/config.server')).config;
+
 		try {
 			globalThis.io = await PixelSocketServer.fromFile(
-				'data/board.dat',
+				config.boardFile,
 				server.httpServer,
 				config.size
 			);
@@ -30,9 +31,11 @@ const socketIo: Plugin = {
 			return;
 		}
 
+		const config = (await import('./src/config.server')).config;
+
 		try {
 			globalThis.io = await PixelSocketServer.fromFile(
-				'data/board.dat',
+				config.boardFile,
 				server.httpServer,
 				config.size
 			);

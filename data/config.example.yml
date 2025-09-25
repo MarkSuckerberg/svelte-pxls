@@ -30,3 +30,5 @@ db:
   url: postgresql://localhost:5432/pixels
 # Name of the board file to save to
 boardFile: data/board.dat
+# Chat message sent to all users on joining
+motd: Welcome to the server!

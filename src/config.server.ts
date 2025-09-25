@@ -14,6 +14,7 @@ interface Config {
 	size: Dimensions;
 	port: number;
 	authSecret: string;
+	motd: string;
 	db: {
 		url: string;
 	};

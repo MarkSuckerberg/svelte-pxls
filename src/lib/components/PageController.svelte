@@ -19,7 +19,9 @@
 	import interact from 'interactjs';
 	import { SvelteURL } from 'svelte/reactivity';
 	import type { UserInfo } from '../userinfo';
+	import Chat from './Chat.svelte';
 	import ModMenu from './ModMenu.svelte';
+	import SignIn from './SignIn.svelte';
 
 	let {
 		pan = $bindable({ x: 0, y: 0 }),
@@ -409,13 +411,13 @@
 	{/if}
 {:else}
 	<div class="absolute right-0 bottom-0 left-0 mx-auto w-2xl">
-		<form method="POST" action="/signin">
-			<button class="btn w-full preset-filled-primary-500" type="submit">
-				<LogIn />
-				<span>Sign in</span>
-			</button>
-		</form>
+		<SignIn class="btn w-full preset-filled-primary-500">
+			<LogIn />
+			<span>Sign in</span>
+		</SignIn>
 	</div>
 {/if}
+
+<Chat {socket} signedIn={!!session} />
 
 <svelte:window onkeydown={(event) => onKey(event, true)} onkeyup={(event) => onKey(event, false)} />
