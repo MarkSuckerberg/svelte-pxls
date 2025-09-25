@@ -1,6 +1,7 @@
 import { copyFile, readFile, writeFile } from 'fs/promises';
 import { ArrayGrid } from '../arrayGrid.js';
-import type { Dimensions } from '../types.js';
+import type { Dimensions, Pixel } from '../types.js';
+import { db, pixelMap } from './db/index.js';
 
 const VERSION = 1;
 const HEADER_SIZE = 6;
@@ -36,7 +37,7 @@ export async function fromFile(file: string, backup = true) {
 				console.error(`Error reading ${file}.`, error);
 				if (backup) {
 					await copyFile(file, `${file}.bak`);
-					console.log(`${file} backed up.`)
+					console.log(`${file} backed up.`);
 				}
 			}
 		})
@@ -44,6 +45,16 @@ export async function fromFile(file: string, backup = true) {
 			// File couldn't be read to begin with
 			return null;
 		});
+}
+
+export async function fromDb(size: Dimensions) {
+	const map: Pixel[] = await db
+		.select({ x: pixelMap.x, y: pixelMap.y, color: pixelMap.color })
+		.from(pixelMap);
+
+	const array = new ArrayGrid(size);
+
+	map.forEach((pixel) => array.set(pixel));
 }
 
 export async function fromLegacyFile(file: string, { width, height }: Dimensions) {

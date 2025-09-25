@@ -19,10 +19,10 @@
 			emojiPicker.addEventListener('emoji-click', (event) => {
 				currentMessage += event.detail.unicode;
 			});
+		});
 
-			socket.on('chat', (data) => {
-				messages = messages.concat(data);
-			});
+		socket.on('chat', (data) => {
+			messages = messages.concat(data);
 		});
 	});
 
@@ -75,10 +75,13 @@
 		<ul>
 			{#each messages as { timestamp, username, message }}
 				<li>
-					<u title={new Date(timestamp).toISOString()}>
-						{new Date(timestamp).toLocaleTimeString()}
-					</u>
-					{username}
+					<span class="font-bold">
+						<u title={new Date(timestamp).toISOString()}>
+							{new Date(timestamp).toLocaleTimeString()}
+						</u>
+						{username}:
+					</span>
+
 					{message}
 				</li>
 			{/each}

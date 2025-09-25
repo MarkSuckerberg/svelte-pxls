@@ -19,6 +19,7 @@ import type { Http2SecureServer, Http2Server } from 'http2';
 import type { Server as HTTPSServer } from 'https';
 import { Server as SocketServer } from 'socket.io';
 import { authConfig } from './authConfig.server.js';
+import { config } from './config.server.js';
 import {
 	bans,
 	chat,
@@ -196,6 +197,12 @@ export class PixelSocketServer {
 							timestamp: message.chat.timestamp.getTime()
 						}))
 						.reverse() satisfies ChatMessage[];
+
+					result.push({
+						username: 'Server',
+						message: config.motd,
+						timestamp: Date.now()
+					});
 
 					socket.emit('chat', result);
 				});

@@ -3,26 +3,29 @@ import {
 	boolean,
 	inet,
 	integer,
-	jsonb,
 	pgTable,
 	primaryKey,
 	serial,
 	text,
 	timestamp,
+	uuid,
 	varchar
 } from 'drizzle-orm/pg-core';
 
-const userId = text('userId').references(() => users.id, {
-	onDelete: 'cascade',
-	onUpdate: 'cascade'
-});
-const userIdOptional = text('userId').references(() => users.id, {
+const userId = uuid('userId')
+	.references(() => users.id, {
+		onDelete: 'cascade',
+		onUpdate: 'cascade'
+	})
+	.notNull();
+
+const userIdOptional = uuid('userId').references(() => users.id, {
 	onDelete: 'set null',
 	onUpdate: 'cascade'
 });
 
 export const users = pgTable('user', {
-	id: text('id')
+	id: uuid('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
 	name: text('name').notNull(),
@@ -36,17 +39,6 @@ export const users = pgTable('user', {
 	mod: boolean('mod').notNull().default(false)
 });
 
-export const oauthLinks = pgTable(
-	'oauthLinks',
-	{
-		id: varchar('id').notNull(),
-		provider: varchar('provider').notNull(),
-		userId: userId,
-		data: jsonb()
-	},
-	(table) => [primaryKey({ columns: [table.provider, table.id] })]
-);
-
 export const bans = pgTable('bans', {
 	id: serial('id').primaryKey(),
 	ip: inet('ip'),
@@ -59,7 +51,7 @@ export const connections = pgTable(
 	{
 		timestamp: timestamp('latestLogin').notNull().defaultNow(),
 		ip: inet('ip').notNull(),
-		userId: userId
+		userId
 	},
 	(table) => [primaryKey({ columns: [table.ip, table.userId] })]
 );
@@ -97,9 +89,7 @@ export const chat = pgTable('chat', {
 export const accounts = pgTable(
 	'account',
 	{
-		userId: text('userId')
-			.notNull()
-			.references(() => users.id, { onDelete: 'cascade' }),
+		userId,
 		type: text('type').$type<AdapterAccountType>().notNull(),
 		provider: text('provider').notNull(),
 		providerAccountId: text('providerAccountId').notNull(),
