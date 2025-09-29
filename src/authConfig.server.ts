@@ -4,7 +4,7 @@ import Google, { type GoogleProfile } from '@auth/core/providers/google';
 import Twitch, { type TwitchProfile } from '@auth/core/providers/twitch';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import type { SvelteKitAuthConfig } from '@auth/sveltekit';
-import { eq } from 'drizzle-orm';
+import { and, eq, gte } from 'drizzle-orm';
 import { config } from './config.server.js';
 import { accounts, bans, db, users } from './lib/server/db/index.js';
 import { Tumblr, type TumblrProfile } from './lib/tumblrAuth.js';
@@ -52,7 +52,11 @@ export const authConfig = {
 	},
 	callbacks: {
 		async signIn({ user }) {
-			const banCount = await db.$count(bans, eq(bans.userId, user.id));
+			//Get bans for the user ID, that have not expired
+			const banCount = await db.$count(
+				bans,
+				and(eq(bans.userId, user.id), gte(bans.expires, new Date(Date.now())))
+			);
 
 			return banCount < 1;
 		},

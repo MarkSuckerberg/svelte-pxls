@@ -43,7 +43,8 @@ export const bans = pgTable('bans', {
 	id: serial('id').primaryKey(),
 	ip: inet('ip'),
 	userId: userIdOptional,
-	reason: varchar('reason')
+	reason: varchar('reason'),
+	expires: timestamp('expires')
 });
 
 export const connections = pgTable(
