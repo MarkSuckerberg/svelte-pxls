@@ -56,12 +56,12 @@
 
 	let scrollable: HTMLDivElement | undefined = $state();
 
-	let open = $state(true);
+	let open = $state(false);
 	let emoji = $state(false);
 </script>
 
 <section
-	class="absolute right-0 flex h-full max-h-[40em] w-1/12 min-w-[25em] resize flex-col preset-filled-surface-500"
+	class="absolute top-48 right-0 flex h-[40em] w-1/12 min-w-[25em] resize flex-col overflow-clip preset-filled-surface-500"
 	style:visibility={open ? '' : 'hidden'}
 >
 	<header class="my-1">
@@ -71,7 +71,7 @@
 		</button>
 	</header>
 	<!-- Table -->
-	<div class="table-wrap flex-12 preset-filled-surface-300-700" bind:this={scrollable}>
+	<div class="table-wrap flex-1 preset-filled-surface-300-700" bind:this={scrollable}>
 		<ul>
 			{#each messages as { timestamp, username, message }}
 				<li>
@@ -125,7 +125,10 @@
 </section>
 
 {#if !open}
-	<button onclick={() => (open = true)} class="absolute right-0 btn preset-filled-surface-500">
+	<button
+		onclick={() => (open = true)}
+		class="absolute top-48 right-0 btn preset-filled-surface-500"
+	>
 		<span>Chat</span>
 		<MessageSquareMore />
 	</button>

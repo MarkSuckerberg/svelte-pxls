@@ -3,6 +3,7 @@
 	import Grid from '$lib/components/Grid.svelte';
 	import PageController from '$lib/components/PageController.svelte';
 	import SignIn from '$lib/components/SignIn.svelte';
+	import Template from '$lib/components/Template.svelte';
 	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
 	import { type ClientSocket, type Dimensions, type Pixel } from '$lib/types';
 	import type { UserInfo } from '$lib/userinfo';
@@ -19,6 +20,9 @@
 
 	let canvas: HTMLCanvasElement;
 	let userCanvas: HTMLCanvasElement;
+
+	let templateCanvas: HTMLCanvasElement;
+	let templateCtx: CanvasRenderingContext2D | null = $state(null);
 
 	let container: HTMLDivElement | undefined = $state();
 
@@ -54,11 +58,20 @@
 	}
 
 	function startCanvas(dimensions: Dimensions, array?: Uint8Array) {
-		displayData = new PixelCanvas(canvas, dimensions, array, 0);
+		displayData = new PixelCanvas(canvas, dimensions, array, 0, {
+			alpha: false,
+			desynchronized: true
+		});
 
 		const storedEdits = localStorage.getItem('currentEdits');
 		const edits = storedEdits ? (JSON.parse(storedEdits) as Pixel[]) : undefined;
 		editData = new PixelEditCanvas(userCanvas, dimensions, edits);
+
+		templateCtx = templateCanvas.getContext('2d');
+		if (!templateCtx) {
+			return;
+		}
+		templateCtx.imageSmoothingEnabled = false;
 	}
 
 	let showUser = $state(false);
@@ -142,6 +155,21 @@
 	</div>
 </div>
 
+<div class="canvas-container">
+	<div class="canvas-inner">
+		<canvas
+			width={data.dimensions.width * 3}
+			height={data.dimensions.height * 3}
+			bind:this={templateCanvas}
+			class="main-canvas template pointer-events-none"
+			style:width={`${data.dimensions.width}px`}
+			style:height={`${data.dimensions.height}px`}
+			style:transform={`translate(${scale <= 1 ? Math.round(pan.x) : pan.x}px, ${scale <= 1 ? Math.round(pan.y) : pan.y}px)`}
+			style:zoom={`${scale * 100}%`}
+		></canvas>
+	</div>
+</div>
+
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	class="canvas-container"
@@ -170,6 +198,10 @@
 		></canvas>
 	</div>
 </div>
+
+{#if templateCtx}
+	<Template dispCtx={templateCtx} boardSize={data.dimensions} />
+{/if}
 
 {#if editData && displayData && socket && userInfo}
 	<PageController

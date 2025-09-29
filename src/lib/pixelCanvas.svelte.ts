@@ -16,19 +16,22 @@ export class PixelCanvas {
 		canvas: HTMLCanvasElement,
 		{ width, height }: Dimensions,
 		array: Uint8Array | undefined = undefined,
-		backgroundFill: number | undefined = undefined
+		backgroundFill: number | undefined = undefined,
+		options: CanvasRenderingContext2DSettings | undefined = undefined
 	) {
 		canvas.width = width;
 		canvas.height = height;
 
 		this.canvas = canvas;
-		const getContext = canvas.getContext('2d');
+		const getContext = canvas.getContext('2d', options);
 
 		if (!getContext) {
 			throw Error('Unable to get canvas context!');
 		}
 
 		this.context = getContext;
+		this.context.imageSmoothingEnabled = false;
+
 		this.width = width;
 		this.height = height;
 		this._rect = $state(this.canvas.getBoundingClientRect());

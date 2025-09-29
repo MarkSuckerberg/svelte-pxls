@@ -105,6 +105,10 @@ export function get1DPosition2D(x: number, y: number, width: number) {
 	return (x % width) + y * width;
 }
 
+export function get1DPosition3D(x: number, y: number, z: number, width: number, depth: number) {
+	return (x % width) + y * width + z * depth;
+}
+
 declare module '@auth/sveltekit' {
 	interface User {
 		id: string;
