@@ -5,6 +5,7 @@
 	import Reticle from '$lib/components/Reticle.svelte';
 	import ViewHud from '$lib/components/ViewHUD.svelte';
 	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
+	import { TemplateData } from '$lib/template.svelte';
 	import { toaster } from '$lib/toaster';
 	import {
 		DEFAULT_COLOR_INDEX,
@@ -22,6 +23,7 @@
 	import Chat from './Chat.svelte';
 	import ModMenu from './ModMenu.svelte';
 	import SignIn from './SignIn.svelte';
+	import Template from './Template.svelte';
 
 	let {
 		pan = $bindable({ x: 0, y: 0 }),
@@ -33,7 +35,8 @@
 		socket,
 		container,
 		initialColor,
-		initialInfo
+		initialInfo,
+		templateCtx
 	}: {
 		pan: Coords;
 		scale: number;
@@ -45,6 +48,7 @@
 		container: HTMLDivElement;
 		initialColor: number;
 		initialInfo: UserInfo;
+		templateCtx: CanvasRenderingContext2D;
 	} = $props();
 
 	const userInfo: UserInfo = {
@@ -54,6 +58,11 @@
 	let selectedColorIdx = $state(initialColor || DEFAULT_COLOR_INDEX);
 
 	let selectedPixel: { x: number; y: number } | undefined = $state();
+
+	let templateData: TemplateData = $state(new TemplateData(templateCtx, {
+		width: editData.width,
+		height: editData.height
+	}));
 
 	editData.canvas.onmousedown = onMouseDown;
 	editData.canvas.onpointerdown = onMouseDown;
@@ -124,6 +133,14 @@
 
 	function handleMove(event: SignalArgs['interactions:move'] & (PointerEvent | GestureEvent)) {
 		if (event.shiftKey || spaceDown) {
+			return;
+		}
+
+		if (event.ctrlKey) {
+			templateData.offset = {
+				width: Math.round(templateData.offset.width + event.dx / scale),
+				height: Math.round(templateData.offset.height + event.dy / scale)
+			};
 			return;
 		}
 
@@ -417,6 +434,8 @@
 		</SignIn>
 	</div>
 {/if}
+
+<Template boardSize={{ width: editData.width, height: editData.height }} {templateData} />
 
 <Chat {socket} signedIn={!!session} />
 

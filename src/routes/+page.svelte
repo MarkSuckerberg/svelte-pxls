@@ -3,7 +3,6 @@
 	import Grid from '$lib/components/Grid.svelte';
 	import PageController from '$lib/components/PageController.svelte';
 	import SignIn from '$lib/components/SignIn.svelte';
-	import Template from '$lib/components/Template.svelte';
 	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
 	import { type ClientSocket, type Dimensions, type Pixel } from '$lib/types';
 	import type { UserInfo } from '$lib/userinfo';
@@ -67,7 +66,7 @@
 		const edits = storedEdits ? (JSON.parse(storedEdits) as Pixel[]) : undefined;
 		editData = new PixelEditCanvas(userCanvas, dimensions, edits);
 
-		templateCtx = templateCanvas.getContext('2d');
+		templateCtx = templateCanvas.getContext('2d', { willReadFrequently: true });
 		if (!templateCtx) {
 			return;
 		}
@@ -161,7 +160,7 @@
 			width={data.dimensions.width * 3}
 			height={data.dimensions.height * 3}
 			bind:this={templateCanvas}
-			class="main-canvas template pointer-events-none"
+			class="main-canvas template"
 			style:width={`${data.dimensions.width}px`}
 			style:height={`${data.dimensions.height}px`}
 			style:transform={`translate(${scale <= 1 ? Math.round(pan.x) : pan.x}px, ${scale <= 1 ? Math.round(pan.y) : pan.y}px)`}
@@ -199,11 +198,7 @@
 	</div>
 </div>
 
-{#if templateCtx}
-	<Template dispCtx={templateCtx} boardSize={data.dimensions} />
-{/if}
-
-{#if editData && displayData && socket && userInfo}
+{#if editData && displayData && socket && userInfo && templateCtx}
 	<PageController
 		bind:pan
 		bind:scale
@@ -215,6 +210,7 @@
 		session={data.session}
 		initialColor={data.color}
 		initialInfo={userInfo}
+		{templateCtx}
 	/>
 {/if}
 
