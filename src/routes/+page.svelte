@@ -3,6 +3,9 @@
 	import Grid from '$lib/components/Grid.svelte';
 	import PageController from '$lib/components/PageController.svelte';
 	import SignIn from '$lib/components/SignIn.svelte';
+	import { Button } from '$lib/components/ui/button';
+	import { Popover, PopoverTrigger } from '$lib/components/ui/popover';
+	import PopoverContent from '$lib/components/ui/popover/popover-content.svelte';
 	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
 	import { type ClientSocket, type Dimensions, type Pixel } from '$lib/types';
 	import type { UserInfo } from '$lib/userinfo';
@@ -81,17 +84,16 @@
 	});
 </script>
 
-<div class="absolute z-10 m-3">
+<div class="absolute z-10 m-2">
 	{#if page.data.session}
-		<button onclick={() => (showUser = !showUser)}>
-			<Avatar
-				src={page.data.session.user?.image || undefined}
-				name={page.data.session.user?.name || 'Unknown'}
-			/>
-		</button>
-
-		{#if showUser}
-			<div class="card preset-filled-surface-500 p-2">
+		<Popover>
+			<PopoverTrigger>
+				<Avatar
+					src={page.data.session.user?.image || undefined}
+					name={page.data.session.user?.name || 'Unknown'}
+				/>
+			</PopoverTrigger>
+			<PopoverContent>
 				<h3>Signed in as:</h3>
 				<ul>
 					<li>
@@ -102,7 +104,7 @@
 					</li>
 					{#if userInfo}
 						<li>
-							Level: {userInfo.maxPixels - 100}
+							Level: {userInfo.maxPixels - 99}
 						</li>
 						<li>
 							Pixels: {userInfo.pixels} / {userInfo.maxPixels}
@@ -123,10 +125,10 @@
 				</p>
 
 				<form action="/signout" method="POST">
-					<button type="submit" class="btn preset-filled-primary-500">Sign out</button>
+					<Button variant="destructive" type="submit" class="w-full">Sign out</Button>
 				</form>
-			</div>
-		{/if}
+			</PopoverContent>
+		</Popover>
 	{:else}
 		<SignIn>
 			<Avatar name="Guest">

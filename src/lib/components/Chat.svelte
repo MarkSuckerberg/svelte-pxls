@@ -1,9 +1,14 @@
 <script lang="ts">
 	import type { ChatMessage, ClientSocket } from '$lib/types';
-	import { MessageSquareMore, Smile, X } from '@lucide/svelte';
+	import { Smile } from '@lucide/svelte';
 	import type { Picker } from 'emoji-picker-element';
 	import { onMount } from 'svelte';
 	import SignIn from './SignIn.svelte';
+	import Button from './ui/button/button.svelte';
+	import Input from './ui/input/input.svelte';
+	import { Popover } from './ui/popover';
+	import PopoverContent from './ui/popover/popover-content.svelte';
+	import PopoverTrigger from './ui/popover/popover-trigger.svelte';
 
 	let messages: ChatMessage[] = $state([]);
 	let { socket, signedIn = false }: { socket: ClientSocket; signedIn?: boolean } = $props();
@@ -12,19 +17,27 @@
 	let emojiPicker: Picker;
 
 	onMount(() => {
-		import('emoji-picker-element/picker').then(async (picker) => {
-			emojiPicker = new picker.default();
-			pickerContainer?.appendChild(emojiPicker);
-
-			emojiPicker.addEventListener('emoji-click', (event) => {
-				currentMessage += event.detail.unicode;
-			});
-		});
-
 		socket.on('chat', (data) => {
 			messages = messages.concat(data);
 		});
 	});
+
+	async function openEmoji(open: boolean) {
+		if (!open) {
+			return;
+		}
+
+		if (!emojiPicker) {
+			const picker = await import('emoji-picker-element/picker');
+			emojiPicker = new picker.default();
+
+			emojiPicker.addEventListener('emoji-click', (event) => {
+				currentMessage += event.detail.unicode;
+			});
+		}
+
+		pickerContainer?.appendChild(emojiPicker);
+	}
 
 	$effect(() => {
 		messages;
@@ -55,23 +68,10 @@
 	}
 
 	let scrollable: HTMLDivElement | undefined = $state();
-
-	let open = $state(false);
-	let emoji = $state(false);
 </script>
 
-<section
-	class="absolute top-48 right-0 flex h-[40em] w-1/12 min-w-[25em] resize flex-col overflow-clip preset-filled-surface-500"
-	style:visibility={open ? '' : 'hidden'}
->
-	<header class="my-1">
-		<h2 class="inline font-bold">Chat</h2>
-		<button class="float-end" onclick={() => (open = false)}>
-			<X />
-		</button>
-	</header>
-	<!-- Table -->
-	<div class="table-wrap flex-1 preset-filled-surface-300-700" bind:this={scrollable}>
+<section class="flex h-full flex-col px-2">
+	<div class="flex h-full w-full" bind:this={scrollable}>
 		<ul>
 			{#each messages as { timestamp, username, message }}
 				<li>
@@ -90,7 +90,7 @@
 	<!-- Footer -->
 	{#if signedIn}
 		<footer class="flex justify-between">
-			<input
+			<Input
 				type="text"
 				bind:value={currentMessage}
 				onkeydown={(event) => {
@@ -99,37 +99,22 @@
 						event.stopPropagation();
 					}
 				}}
-				class="input text-black"
 			/>
-			<div
-				style:visibility={emoji ? '' : 'hidden'}
-				class="absolute top-full"
-				bind:this={pickerContainer}
-			></div>
-			<button onclick={() => (emoji = !emoji)}>
-				<Smile />
-			</button>
-			<button
-				class="btn preset-filled-primary-500"
-				onclick={() => sendMessage()}
-				disabled={!currentMessage}
-			>
+			<Popover onOpenChangeComplete={openEmoji}>
+				<PopoverTrigger onclick={() => openEmoji(true)}>
+					<Smile class="mx-2" />
+				</PopoverTrigger>
+				<PopoverContent>
+					<div bind:this={pickerContainer}></div>
+				</PopoverContent>
+			</Popover>
+			<Button onclick={() => sendMessage()} variant="secondary" disabled={!currentMessage}>
 				Send
-			</button>
+			</Button>
 		</footer>
 	{:else}
 		<SignIn class="mx-auto btn h-full w-full preset-filled-primary-500">
-			<button>Sign in to chat!</button>
+			Sign in to chat!
 		</SignIn>
 	{/if}
 </section>
-
-{#if !open}
-	<button
-		onclick={() => (open = true)}
-		class="absolute top-48 right-0 btn preset-filled-surface-500"
-	>
-		<span>Chat</span>
-		<MessageSquareMore />
-	</button>
-{/if}

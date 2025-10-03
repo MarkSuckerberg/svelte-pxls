@@ -10,6 +10,8 @@
 	import snoozin from '$lib/snoozin.png';
 	import type { TemplateData } from '$lib/template.svelte';
 	import type { Dimensions } from '$lib/types';
+	import { Button } from './ui/button';
+	import { Input } from './ui/input';
 
 	templateData.updateTemplate(snoozin).then(() => {
 		templateData.offset = {
@@ -19,18 +21,17 @@
 	});
 </script>
 
-<div class="absolute right-0 z-10 h-48 w-[30em] preset-filled-surface-500 p-2 text-black">
-	<input type="url" name="templateUrl" bind:value={templateData.inputUrl} />
-	<button class="btn preset-filled-primary-500" onclick={() => templateData.updateTemplate()}>
-		Change Template
-	</button>
-
-	<br />
+<form class="flex flex-col gap-2 p-2">
+	<label>
+		<span>Template URL</span>
+		<Input type="url" name="templateUrl" bind:value={templateData.inputUrl} />
+		<Button onclick={() => templateData.updateTemplate()}>Change Template</Button>
+	</label>
 
 	<div>
 		<label>
 			<span class="mr-4">X</span>
-			<input
+			<Input
 				type="number"
 				id="templateX"
 				min="0"
@@ -38,7 +39,7 @@
 				bind:value={templateData.input.width}
 				oninput={() => templateData.updateOffset()}
 			/>
-			<input
+			<Input
 				type="range"
 				id="templateX"
 				min="0"
@@ -52,7 +53,7 @@
 	<div>
 		<label>
 			<span class="mr-4">Y</span>
-			<input
+			<Input
 				type="number"
 				id="templateY"
 				min="0"
@@ -60,7 +61,7 @@
 				bind:value={templateData.input.height}
 				oninput={() => templateData.updateOffset()}
 			/>
-			<input
+			<Input
 				type="range"
 				id="templateY"
 				min="0"
@@ -70,7 +71,5 @@
 			/>
 		</label>
 	</div>
-	<button class="btn preset-filled-primary-500" onclick={() => templateData.updateOffset()}>
-		Change Offset
-	</button>
-</div>
+	<Button onclick={() => templateData.updateOffset()}>Change Offset</Button>
+</form>

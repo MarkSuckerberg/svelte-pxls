@@ -3,10 +3,11 @@
 	import { page } from '$app/state';
 	import EditMenu from '$lib/components/EditMenu.svelte';
 	import Reticle from '$lib/components/Reticle.svelte';
+	import * as Sidebar from '$lib/components/ui/sidebar/index';
+
 	import ViewHud from '$lib/components/ViewHUD.svelte';
 	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
 	import { TemplateData } from '$lib/template.svelte';
-	import { toaster } from '$lib/toaster';
 	import {
 		DEFAULT_COLOR_INDEX,
 		type ClientSocket,
@@ -16,14 +17,16 @@
 	} from '$lib/types';
 	import type { GestureEvent } from '@interactjs/actions/gesture/plugin';
 	import type { SignalArgs } from '@interactjs/core/scope';
-	import { LogIn } from '@lucide/svelte';
+	import { MessageSquareMore, Settings, TriangleDashed } from '@lucide/svelte';
 	import interact from 'interactjs';
+	import { toast } from 'svelte-sonner';
 	import { SvelteURL } from 'svelte/reactivity';
 	import type { UserInfo } from '../userinfo';
 	import Chat from './Chat.svelte';
 	import ModMenu from './ModMenu.svelte';
 	import SignIn from './SignIn.svelte';
 	import Template from './Template.svelte';
+	import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 
 	let {
 		pan = $bindable({ x: 0, y: 0 }),
@@ -59,10 +62,12 @@
 
 	let selectedPixel: { x: number; y: number } | undefined = $state();
 
-	let templateData: TemplateData = $state(new TemplateData(templateCtx, {
-		width: editData.width,
-		height: editData.height
-	}));
+	let templateData: TemplateData = $state(
+		new TemplateData(templateCtx, {
+			width: editData.width,
+			height: editData.height
+		})
+	);
 
 	editData.canvas.onmousedown = onMouseDown;
 	editData.canvas.onpointerdown = onMouseDown;
@@ -243,18 +248,10 @@
 
 	async function submitEditsToast() {
 		const promise = submitEdits();
-		toaster.promise(promise, {
-			loading: {
-				title: 'Submitting pixels...'
-			},
-			success: () => ({
-				title: 'Submitted!',
-				description: 'Pixels placed.'
-			}),
-			error: () => ({
-				title: 'Error!',
-				description: 'Error placing pixels! Edits not submitted. Try again later.'
-			})
+		toast.promise(promise, {
+			loading: 'Submitting pixels...',
+			success: () => 'Pixels placed.',
+			error: () => 'Error placing pixels! Edits not submitted. Try again later.'
 		});
 		return promise.catch(console.error);
 	}
@@ -429,14 +426,39 @@
 {:else}
 	<div class="absolute right-0 bottom-0 left-0 mx-auto w-2xl">
 		<SignIn class="btn w-full preset-filled-primary-500">
-			<LogIn />
 			<span>Sign in</span>
 		</SignIn>
 	</div>
 {/if}
 
-<Template boardSize={{ width: editData.width, height: editData.height }} {templateData} />
+<Sidebar.Root side="right" collapsible="offcanvas">
+	<Tabs value="chat" class="h-full w-full">
+		<Sidebar.Header class="flex-row">
+			<div class="w-0">
+				<Sidebar.Trigger
+					class="relative right-12 rounded bg-background group-data-[state=open]/collapsible:right-0"
+				/>
+			</div>
 
-<Chat {socket} signedIn={!!session} />
+			<TabsList>
+				<TabsTrigger value="chat"><MessageSquareMore /> Chat</TabsTrigger>
+				<TabsTrigger value="template"><TriangleDashed /> Template</TabsTrigger>
+
+				<TabsTrigger value="settings"><Settings /> Settings</TabsTrigger>
+			</TabsList>
+		</Sidebar.Header>
+		<div class="h-full flex-1 grow">
+			<TabsContent value="chat" class="h-full p-2">
+				<Chat {socket} signedIn={!!session} />
+			</TabsContent>
+			<TabsContent value="template">
+				<Template
+					boardSize={{ width: editData.width, height: editData.height }}
+					{templateData}
+				/>
+			</TabsContent>
+		</div>
+	</Tabs>
+</Sidebar.Root>
 
 <svelte:window onkeydown={(event) => onKey(event, true)} onkeyup={(event) => onKey(event, false)} />
