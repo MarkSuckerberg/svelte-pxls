@@ -9,7 +9,7 @@
 	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
 	import { type ClientSocket, type Dimensions, type Pixel } from '$lib/types';
 	import type { UserInfo } from '$lib/userinfo';
-	import { BadgeQuestionMark } from '@lucide/svelte';
+	import BadgeQuestionMark from '@lucide/svelte/icons/badge-question-mark';
 	import { Avatar } from '@skeletonlabs/skeleton-svelte';
 	import { io } from 'socket.io-client';
 	import { onMount } from 'svelte';

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ChatMessage, ClientSocket } from '$lib/types';
-	import { Smile } from '@lucide/svelte';
+	import Smile from '@lucide/svelte/icons/smile';
 	import type { Picker } from 'emoji-picker-element';
 	import { onMount } from 'svelte';
 	import SignIn from './SignIn.svelte';

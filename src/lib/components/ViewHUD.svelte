@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { Brush, ClipboardCopy, X as Exit, Save } from '@lucide/svelte';
+	import Brush from '@lucide/svelte/icons/brush';
+	import ClipboardCopy from '@lucide/svelte/icons/clipboard-copy';
+	import Save from '@lucide/svelte/icons/save';
+	import Exit from '@lucide/svelte/icons/x';
 	import type { ArrayGrid } from '../arrayGrid';
 	import { colorNames, colors, type ClientSocket, type Coords } from '../types';
 	import type { UserInfo } from '../userinfo';

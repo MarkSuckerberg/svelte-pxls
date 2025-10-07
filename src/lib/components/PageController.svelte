@@ -17,7 +17,9 @@
 	} from '$lib/types';
 	import type { GestureEvent } from '@interactjs/actions/gesture/plugin';
 	import type { SignalArgs } from '@interactjs/core/scope';
-	import { MessageSquareMore, Settings, TriangleDashed } from '@lucide/svelte';
+	import MessageSquareMore from '@lucide/svelte/icons/message-square-more';
+	import Settings from '@lucide/svelte/icons/settings';
+	import TriangleDashed from '@lucide/svelte/icons/triangle-dashed';
 	import interact from 'interactjs';
 	import { toast } from 'svelte-sonner';
 	import { SvelteURL } from 'svelte/reactivity';

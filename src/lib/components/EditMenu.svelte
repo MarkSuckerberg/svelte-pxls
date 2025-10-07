@@ -1,7 +1,10 @@
 <script lang="ts">
 	import type { EditSet } from '$lib/EditSet.svelte';
 	import type { UserInfo } from '$lib/userinfo';
-	import { Eraser, X as Exit, Send, Trash } from '@lucide/svelte';
+	import Eraser from '@lucide/svelte/icons/eraser';
+	import Send from '@lucide/svelte/icons/send';
+	import Trash from '@lucide/svelte/icons/trash';
+	import Exit from '@lucide/svelte/icons/x';
 	import { colorNames, colors } from '../types';
 	import PixelCount from './PixelCount.svelte';
 	import { Button } from './ui/button';
