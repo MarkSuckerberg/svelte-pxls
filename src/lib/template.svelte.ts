@@ -1,9 +1,11 @@
+import { page } from '$app/state';
+import { toast } from 'svelte-sonner';
 import type { Dimensions } from './types';
 
 export class TemplateData {
 	private readonly boardSize: Dimensions;
 	private readonly templateCtx: CanvasRenderingContext2D;
-    
+
 	private templateData: ImageData | undefined = $state();
 	private _offset: Dimensions = { width: 0, height: 0 };
 
@@ -46,15 +48,7 @@ export class TemplateData {
 		);
 	}
 
-	async updateTemplate(newUrl: string = this.inputUrl) {
-		this.inputUrl = newUrl;
-
-		const response = await fetch(newUrl, {
-			credentials: 'omit',
-			referrerPolicy: 'same-origin'
-		});
-
-		const file = await response.blob();
+	async setTemplate(file: Blob) {
 		if (file.size > 1024 * 1024 * 10) {
 			return;
 		}
@@ -122,5 +116,61 @@ export class TemplateData {
 			bitmap.width * 3,
 			bitmap.height * 3
 		);
+	}
+
+	async updateTemplate(newUrl: string = this.inputUrl) {
+		const url = URL.parse(newUrl, page.url.origin);
+
+		if (!url || !url.protocol.startsWith('http')) {
+			toast.error('Invalid URL!');
+			return;
+		}
+
+		try {
+			const options = {
+				referrerPolicy: 'same-origin',
+				credentials: 'omit',
+				headers: {
+					Accept: 'image/*'
+				}
+			} satisfies RequestInit;
+
+			const details = await fetch(newUrl, {
+				...options,
+				method: 'HEAD'
+			});
+
+			if (!details.ok) {
+				toast.error('Failed to fetch image!');
+				return;
+			}
+
+			const type = details.headers.get('content-type');
+			const length = details.headers.get('content-length');
+
+			if (!type?.startsWith('image/')) {
+				toast.error('Invalid image type: ' + (type || 'none'));
+				return;
+			}
+
+			if (length && Number(length) > 50 * 1024 * 1024) {
+				toast(
+					'Selected image too large! Max 50mb. Image size: ' +
+						(Number(length) / (1024 * 1024)).toFixed(1) +
+						' mb.'
+				);
+				return;
+			}
+
+			this.inputUrl = newUrl;
+
+			const response = await fetch(newUrl, options);
+
+			const file = await response.blob();
+			return this.setTemplate(file);
+		} catch (error) {
+			toast.error(`${error}`);
+			return;
+		}
 	}
 }

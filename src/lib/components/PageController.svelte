@@ -1,11 +1,14 @@
 <script lang="ts">
 	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
-	import EditMenu from '$lib/components/EditMenu.svelte';
-	import Reticle from '$lib/components/Reticle.svelte';
-	import * as Sidebar from '$lib/components/ui/sidebar/index';
 
+	import EditMenu from '$lib/components/EditMenu.svelte';
+	import ModMenu from '$lib/components/ModMenu.svelte';
+	import Reticle from '$lib/components/Reticle.svelte';
+	import Sidebar from '$lib/components/Sidebar.svelte';
+	import SignIn from '$lib/components/SignIn.svelte';
 	import ViewHud from '$lib/components/ViewHUD.svelte';
+
 	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
 	import { TemplateData } from '$lib/template.svelte';
 	import {
@@ -15,20 +18,13 @@
 		type Pixel,
 		type PixelSession
 	} from '$lib/types';
+	import type { UserInfo } from '$lib/userinfo';
+
 	import type { GestureEvent } from '@interactjs/actions/gesture/plugin';
 	import type { SignalArgs } from '@interactjs/core/scope';
-	import MessageSquareMore from '@lucide/svelte/icons/message-square-more';
-	import Settings from '@lucide/svelte/icons/settings';
-	import TriangleDashed from '@lucide/svelte/icons/triangle-dashed';
 	import interact from 'interactjs';
 	import { toast } from 'svelte-sonner';
 	import { SvelteURL } from 'svelte/reactivity';
-	import type { UserInfo } from '../userinfo';
-	import Chat from './Chat.svelte';
-	import ModMenu from './ModMenu.svelte';
-	import SignIn from './SignIn.svelte';
-	import Template from './Template.svelte';
-	import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 
 	let {
 		pan = $bindable({ x: 0, y: 0 }),
@@ -433,34 +429,6 @@
 	</div>
 {/if}
 
-<Sidebar.Root side="right" collapsible="offcanvas">
-	<Tabs value="chat" class="h-full w-full">
-		<Sidebar.Header class="flex-row">
-			<div class="w-0">
-				<Sidebar.Trigger
-					class="relative right-12 rounded bg-background group-data-[state=open]/collapsible:right-0"
-				/>
-			</div>
-
-			<TabsList>
-				<TabsTrigger value="chat"><MessageSquareMore /> Chat</TabsTrigger>
-				<TabsTrigger value="template"><TriangleDashed /> Template</TabsTrigger>
-
-				<TabsTrigger value="settings"><Settings /> Settings</TabsTrigger>
-			</TabsList>
-		</Sidebar.Header>
-		<div class="h-full flex-1 grow">
-			<TabsContent value="chat" class="h-full p-2">
-				<Chat {socket} signedIn={!!session} />
-			</TabsContent>
-			<TabsContent value="template">
-				<Template
-					boardSize={{ width: editData.width, height: editData.height }}
-					{templateData}
-				/>
-			</TabsContent>
-		</div>
-	</Tabs>
-</Sidebar.Root>
+<Sidebar {editData} {session} {socket} {templateData} />
 
 <svelte:window onkeydown={(event) => onKey(event, true)} onkeyup={(event) => onKey(event, false)} />
