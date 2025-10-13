@@ -6,6 +6,7 @@
 	import InputGroupAddon from './ui/input-group/input-group-addon.svelte';
 	import InputGroupButton from './ui/input-group/input-group-button.svelte';
 	import InputGroupInput from './ui/input-group/input-group-input.svelte';
+	import Separator from './ui/separator/separator.svelte';
 
 	let { socket, userId = '' }: { socket: ClientSocket; userId?: string } = $props();
 
@@ -33,7 +34,11 @@
 	}
 </script>
 
-<div class="p-4">
+<div class="flex flex-col gap-2 p-2">
+	<h2 class="text-xl font-bold">Moderator Actions</h2>
+
+	<Separator />
+
 	<InputGroup>
 		<InputGroupInput bind:value={userIp} placeholder="192.168.1.1" />
 		<InputGroupAddon align="inline-end">
