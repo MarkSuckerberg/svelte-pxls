@@ -52,9 +52,11 @@ export async function fromDb(size: Dimensions) {
 		.select({ x: pixelMap.x, y: pixelMap.y, color: pixelMap.color })
 		.from(pixelMap);
 
-	const array = new ArrayGrid(size);
+	const array = (await fromLegacyFile('data/baseMap.dat', size)) || new ArrayGrid(size);
 
 	map.forEach((pixel) => array.set(pixel));
+
+	return array;
 }
 
 export async function fromLegacyFile(file: string, { width, height }: Dimensions) {

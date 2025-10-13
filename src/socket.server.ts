@@ -1,6 +1,6 @@
 import { Auth, createActionURL } from '@auth/core';
 import { ArrayGrid } from './lib/arrayGrid.js';
-import { fromFile, fromLegacyFile, toFile } from './lib/server/arrayGrid.server.js';
+import { fromDb, fromFile, fromLegacyFile, toFile } from './lib/server/arrayGrid.server.js';
 import {
 	type AuthedSocketData,
 	type ChatMessage,
@@ -39,6 +39,7 @@ export class PixelSocketServer {
 	) {
 		const data =
 			(await fromFile(file)) ||
+			(await fromDb(size)) ||
 			(await fromLegacyFile('data/baseMap.dat', size)) ||
 			new ArrayGrid(size);
 
@@ -178,7 +179,10 @@ export class PixelSocketServer {
 				}
 
 				ack({
-					user: info.user.name,
+					placer: info.user.name,
+					placerPlaced: info.user.placed,
+					placerAvatar: info.user.image,
+					placerMod: info.user.mod,
 					time: info.pixelPlace.time.getTime()
 				});
 				return;

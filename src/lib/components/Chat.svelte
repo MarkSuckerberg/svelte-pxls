@@ -1,11 +1,11 @@
 <script lang="ts">
+	import * as InputGroup from '$lib/components/ui/input-group/index.js';
 	import type { ChatMessage, ClientSocket } from '$lib/types';
+	import Send from '@lucide/svelte/icons/send';
 	import Smile from '@lucide/svelte/icons/smile';
 	import type { Picker } from 'emoji-picker-element';
 	import { onMount } from 'svelte';
 	import SignIn from './SignIn.svelte';
-	import Button from './ui/button/button.svelte';
-	import Input from './ui/input/input.svelte';
 	import { Popover } from './ui/popover';
 	import PopoverContent from './ui/popover/popover-content.svelte';
 	import PopoverTrigger from './ui/popover/popover-trigger.svelte';
@@ -68,16 +68,27 @@
 	}
 
 	let scrollable: HTMLDivElement | undefined = $state();
+
+	function time(timestamp: number) {
+		const date = new Date(timestamp);
+		const dateString = date.toLocaleDateString();
+
+		if (dateString != new Date(Date.now()).toLocaleDateString()) {
+			return dateString;
+		}
+
+		return date.toLocaleTimeString();
+	}
 </script>
 
-<section class="flex h-full flex-col px-2">
-	<div class="flex h-full w-full" bind:this={scrollable}>
+<section class="flex h-full flex-col">
+	<div class="w-full flex-1 overflow-y-scroll p-2" bind:this={scrollable}>
 		<ul>
 			{#each messages as { timestamp, username, message }}
 				<li>
 					<span class="font-bold">
 						<u title={new Date(timestamp).toISOString()}>
-							{new Date(timestamp).toLocaleTimeString()}
+							{time(timestamp)}
 						</u>
 						{username}:
 					</span>
@@ -89,28 +100,35 @@
 	</div>
 	<!-- Footer -->
 	{#if signedIn}
-		<footer class="flex justify-between">
-			<Input
-				type="text"
-				bind:value={currentMessage}
-				onkeydown={(event) => {
-					if (event.key === 'Enter') {
-						sendMessage();
-						event.stopPropagation();
-					}
-				}}
-			/>
-			<Popover onOpenChangeComplete={openEmoji}>
-				<PopoverTrigger onclick={() => openEmoji(true)}>
-					<Smile class="mx-2" />
-				</PopoverTrigger>
-				<PopoverContent>
-					<div bind:this={pickerContainer}></div>
-				</PopoverContent>
-			</Popover>
-			<Button onclick={() => sendMessage()} variant="secondary" disabled={!currentMessage}>
-				Send
-			</Button>
+		<footer class="m-2 flex h-10 justify-between">
+			<InputGroup.Root class="h-full">
+				<InputGroup.Input
+					placeholder="Send a message..."
+					bind:value={currentMessage}
+					onkeydown={(event) => {
+						if (event.key === 'Enter') {
+							sendMessage();
+							event.stopPropagation();
+						}
+					}}
+				/>
+				<InputGroup.Addon align="inline-end">
+					<Popover onOpenChangeComplete={openEmoji}>
+						<PopoverTrigger onclick={() => openEmoji(true)}>
+							<InputGroup.Button variant="ghost">
+								<Smile />
+							</InputGroup.Button>
+						</PopoverTrigger>
+						<PopoverContent align="end" class="p-0">
+							<div bind:this={pickerContainer}></div>
+						</PopoverContent>
+					</Popover>
+					<InputGroup.Button class="ml-auto" variant="default" onclick={sendMessage}>
+						<Send />
+						<span class="sr-only">Send</span>
+					</InputGroup.Button>
+				</InputGroup.Addon>
+			</InputGroup.Root>
 		</footer>
 	{:else}
 		<SignIn class="mx-auto btn h-full w-full preset-filled-primary-500">

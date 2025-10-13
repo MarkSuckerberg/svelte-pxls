@@ -2,10 +2,10 @@
 	import type { Ban, ClientSocket } from '$lib/types';
 	import { toast } from 'svelte-sonner';
 	import { Button } from './ui/button';
-	import { Card } from './ui/card';
-	import CardContent from './ui/card/card-content.svelte';
-	import CardHeader from './ui/card/card-header.svelte';
-	import { Input } from './ui/input';
+	import { InputGroup } from './ui/input-group';
+	import InputGroupAddon from './ui/input-group/input-group-addon.svelte';
+	import InputGroupButton from './ui/input-group/input-group-button.svelte';
+	import InputGroupInput from './ui/input-group/input-group-input.svelte';
 
 	let { socket, userId = '' }: { socket: ClientSocket; userId?: string } = $props();
 
@@ -33,27 +33,26 @@
 	}
 </script>
 
-<Card class="absolute right-0 z-10">
-	<CardHeader><h2>Mod Panel</h2></CardHeader>
-	<CardContent>
-		<ul>
-			<li>
-				<Input type="text" bind:value={userIp} name="banUserIP" />
-				<Button variant="destructive" onclick={() => ban({ ip: userIp })}>Ban IP</Button>
-			</li>
-			<li>
-				<Input type="text" bind:value={userId} name="banUserID" />
-				<Button variant="destructive" onclick={() => ban({ userId })}>Ban UserID</Button>
-			</li>
-			<li>
-				<Button variant="destructive" onclick={() => ban({ ip: userIp, userId })}>
-					Ban Both
-				</Button>
-			</li>
-			<li>
-				<Input type="number" bind:value={banId} />
-				<Button disabled>Unban ID</Button>
-			</li>
-		</ul>
-	</CardContent>
-</Card>
+<div class="p-4">
+	<InputGroup>
+		<InputGroupInput bind:value={userIp} placeholder="192.168.1.1" />
+		<InputGroupAddon align="inline-end">
+			<InputGroupButton variant="destructive" onclick={() => ban({ ip: userIp })}>
+				Ban IP
+			</InputGroupButton>
+		</InputGroupAddon>
+	</InputGroup>
+
+	<InputGroup>
+		<InputGroupInput bind:value={userId} placeholder="000000-0000-0000-0000-000000000000" />
+		<InputGroupAddon align="inline-end">
+			<InputGroupButton variant="destructive" onclick={() => ban({ userId })}>
+				Ban UserID
+			</InputGroupButton>
+		</InputGroupAddon>
+	</InputGroup>
+
+	<Button variant="destructive" onclick={() => ban({ ip: userIp, userId })} class="w-full">
+		Ban Both
+	</Button>
+</div>

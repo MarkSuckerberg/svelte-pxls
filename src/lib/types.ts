@@ -44,12 +44,17 @@ export type ServerToClientEvents = {
 	chat: (message: ChatMessage[]) => void;
 };
 
+export interface PixelInfo {
+	placer: string;
+	placerPlaced: number;
+	placerAvatar: string | null;
+	placerMod: boolean;
+	time: number;
+}
+
 export type ClientToServerEvents = {
 	place: (pixels: Pixel[], ack: (pixels: Pixel[]) => void) => void;
-	pixelInfo: (
-		location: Coords,
-		ack: (pixel: { user: string; time: number } | null) => void
-	) => void;
+	pixelInfo: (location: Coords, ack: (pixel: PixelInfo | null) => void) => void;
 	ban: (ban: Ban, ack: (banId?: number) => void) => void;
 	chat: (message: string) => void;
 };

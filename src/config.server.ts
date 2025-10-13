@@ -18,6 +18,9 @@ interface Config {
 	db: {
 		url: string;
 	};
+	legacyDB?: {
+		url: string
+	}
 	providers: {
 		discord?: ProviderCredentials;
 		google?: ProviderCredentials;

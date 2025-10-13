@@ -1,16 +1,9 @@
 <script lang="ts">
-	import { page } from '$app/state';
 	import Grid from '$lib/components/Grid.svelte';
 	import PageController from '$lib/components/PageController.svelte';
-	import SignIn from '$lib/components/SignIn.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { Popover, PopoverTrigger } from '$lib/components/ui/popover';
-	import PopoverContent from '$lib/components/ui/popover/popover-content.svelte';
 	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
 	import { type ClientSocket, type Dimensions, type Pixel } from '$lib/types';
 	import type { UserInfo } from '$lib/userinfo';
-	import BadgeQuestionMark from '@lucide/svelte/icons/badge-question-mark';
-	import { Avatar } from '@skeletonlabs/skeleton-svelte';
 	import { io } from 'socket.io-client';
 	import { onMount } from 'svelte';
 	import type { PageProps } from './$types';
@@ -76,67 +69,11 @@
 		templateCtx.imageSmoothingEnabled = false;
 	}
 
-	let showUser = $state(false);
-
 	onMount(() => {
 		startCanvas(data.dimensions, data.array);
 		startSocket();
 	});
 </script>
-
-<div class="absolute z-10 m-2">
-	{#if page.data.session}
-		<Popover>
-			<PopoverTrigger>
-				<Avatar
-					src={page.data.session.user?.image || undefined}
-					name={page.data.session.user?.name || 'Unknown'}
-				/>
-			</PopoverTrigger>
-			<PopoverContent>
-				<h3>Signed in as:</h3>
-				<ul>
-					<li>
-						Username: {page.data.session.user?.name}
-					</li>
-					<li>
-						ID: {page.data.session.user?.id}
-					</li>
-					{#if userInfo}
-						<li>
-							Level: {userInfo.maxPixels - 99}
-						</li>
-						<li>
-							Pixels: {userInfo.pixels} / {userInfo.maxPixels}
-						</li>
-						<li>
-							Placed: {userInfo.placed}
-						</li>
-						<li>
-							Next pixel: {Math.max(0, 20 - (Date.now() - userInfo.lastTicked))}s
-						</li>
-					{/if}
-				</ul>
-
-				<p>
-					<span title={currentUsers.join(', ')}>
-						{currentUsers.length} user{currentUsers.length != 1 ? 's' : ''} online
-					</span>
-				</p>
-
-				<form action="/signout" method="POST">
-					<Button variant="destructive" type="submit" class="w-full">Sign out</Button>
-				</form>
-			</PopoverContent>
-		</Popover>
-	{:else}
-		<SignIn>
-			<Avatar name="Guest">
-				<BadgeQuestionMark />
-			</Avatar>
-		</SignIn>
-	{/if}
-</div>
 
 <div class="canvas-container main">
 	{#if displayData && grid}

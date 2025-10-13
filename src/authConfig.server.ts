@@ -1,9 +1,9 @@
+import type { AuthConfig } from '@auth/core';
 import type { Provider } from '@auth/core/providers';
 import Discord, { type DiscordProfile } from '@auth/core/providers/discord';
 import Google, { type GoogleProfile } from '@auth/core/providers/google';
 import Twitch, { type TwitchProfile } from '@auth/core/providers/twitch';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
-import type { SvelteKitAuthConfig } from '@auth/sveltekit';
 import { and, eq, gte } from 'drizzle-orm';
 import { config } from './config.server.js';
 import { accounts, bans, db, users } from './lib/server/db/index.js';
@@ -52,6 +52,10 @@ export const authConfig = {
 	},
 	callbacks: {
 		async signIn({ user }) {
+			if (!user.id) {
+				return true;
+			}
+
 			//Get bans for the user ID, that have not expired
 			const banCount = await db.$count(
 				bans,
@@ -75,4 +79,4 @@ export const authConfig = {
 			return session;
 		}
 	}
-} satisfies SvelteKitAuthConfig;
+} satisfies AuthConfig;

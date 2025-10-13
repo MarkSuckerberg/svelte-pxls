@@ -3,7 +3,6 @@
 	import { page } from '$app/state';
 
 	import EditMenu from '$lib/components/EditMenu.svelte';
-	import ModMenu from '$lib/components/ModMenu.svelte';
 	import Reticle from '$lib/components/Reticle.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import SignIn from '$lib/components/SignIn.svelte';
@@ -25,6 +24,7 @@
 	import interact from 'interactjs';
 	import { toast } from 'svelte-sonner';
 	import { SvelteURL } from 'svelte/reactivity';
+	import UserAvatar from './UserAvatar.svelte';
 
 	let {
 		pan = $bindable({ x: 0, y: 0 }),
@@ -362,6 +362,7 @@
 		switch (event.key) {
 			case 'Escape':
 				selectedPixel = undefined;
+				editing = false;
 				break;
 			case 'Enter':
 				if (editing) {
@@ -375,7 +376,15 @@
 
 		event.preventDefault();
 	}
+
+	let currentUsers: string[] = $state([]);
+
+	socket.on('users', (users) => {
+		currentUsers = users;
+	});
 </script>
+
+<UserAvatar {userInfo} session={page.data.session} {currentUsers} />
 
 {#if reticlePosition}
 	<Reticle {reticlePosition} {selectedColorIdx} {scale} />
@@ -417,10 +426,6 @@
 			canvas={displayData.canvas}
 		/>
 	{/if}
-
-	{#if userInfo.mod}
-		<ModMenu {socket} />
-	{/if}
 {:else}
 	<div class="absolute right-0 bottom-0 left-0 mx-auto w-2xl">
 		<SignIn class="btn w-full preset-filled-primary-500">
@@ -429,6 +434,6 @@
 	</div>
 {/if}
 
-<Sidebar {editData} {session} {socket} {templateData} />
+<Sidebar {editData} {session} {socket} {templateData} {userInfo} />
 
 <svelte:window onkeydown={(event) => onKey(event, true)} onkeyup={(event) => onKey(event, false)} />

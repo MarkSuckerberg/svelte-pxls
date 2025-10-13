@@ -3,12 +3,18 @@
 	import ClipboardCopy from '@lucide/svelte/icons/clipboard-copy';
 	import Save from '@lucide/svelte/icons/save';
 	import Exit from '@lucide/svelte/icons/x';
+	import { Avatar } from '@skeletonlabs/skeleton-svelte';
+	import { slide } from 'svelte/transition';
 	import type { ArrayGrid } from '../arrayGrid';
 	import { colorNames, colors, type ClientSocket, type Coords } from '../types';
 	import type { UserInfo } from '../userinfo';
 	import PixelCount from './PixelCount.svelte';
 	import Button from './ui/button/button.svelte';
 	import { Card, CardContent } from './ui/card';
+	import { Popover } from './ui/popover';
+	import PopoverContent from './ui/popover/popover-content.svelte';
+	import PopoverTrigger from './ui/popover/popover-trigger.svelte';
+	import { Spinner } from './ui/spinner';
 
 	let {
 		selectedPixel,
@@ -85,6 +91,7 @@
 
 <div
 	class="pointer-events-none absolute bottom-0 left-1/8 flex w-3/4 flex-col items-center justify-center *:pointer-events-auto"
+	transition:slide
 >
 	<Button
 		class="h-20 w-4xl bg-chart-2"
@@ -117,10 +124,30 @@
 					<li>
 						Color: {selectedPixelColor}
 					</li>
-					{#await socket.emitWithAck('pixelInfo', selectedPixel) then info}
+					{#await socket.emitWithAck('pixelInfo', selectedPixel)}
+						<Spinner />
+					{:then info}
 						{#if info}
 							<li>
-								Placer: {info?.user}
+								Placer:
+								<Popover>
+									<PopoverTrigger class="underline">{info.placer}</PopoverTrigger>
+									<PopoverContent class="flex gap-2">
+										<Avatar
+											name={info.placer}
+											src={info.placerAvatar || undefined}
+											border={info.placerMod
+												? 'border-2 border-amber-400'
+												: ''}
+										/>
+										<div>
+											<h3 class="font-bold">{info.placer}</h3>
+											<p>
+												{info.placerPlaced.toLocaleString()} pixels placed
+											</p>
+										</div>
+									</PopoverContent>
+								</Popover>
 							</li>
 							<li>
 								Time: {info ? new Date(info.time) : ''}

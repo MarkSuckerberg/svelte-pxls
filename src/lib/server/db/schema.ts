@@ -28,7 +28,7 @@ export const users = pgTable('user', {
 	id: uuid('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
-	name: text('name').notNull(),
+	name: text('name').notNull().unique(),
 	email: text('email').unique(),
 	emailVerified: timestamp('emailVerified', { mode: 'date' }),
 	image: text('image'),
