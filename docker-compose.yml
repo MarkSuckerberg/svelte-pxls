@@ -5,7 +5,7 @@ services:
         command:
             [
                 "-c",
-                "npx drizzle-kit generate && npx drizzle-kit migrate && node dist/server.js",
+                "npx drizzle-kit generate && npx drizzle-kit migrate && node dist/lib/server/db/legacyMigrate.js && node dist/server.js",
             ]
         restart: unless-stopped
         ports:

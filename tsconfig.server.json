@@ -17,5 +17,5 @@
 		"rootDir": "src",
 		"outDir": "dist"
 	},
-	"include": ["src/server.ts", "src/server.socket.ts"]
+	"include": ["src/server.ts", "src/server.socket.ts", "src/lib/server/db/legacyMigrate.ts"]
 }
