@@ -1,6 +1,6 @@
 import type { AdapterAccountType } from '@auth/core/adapters';
 import type { UUID } from 'crypto';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { config } from '../../../config.server.js';
 import * as legacySchema from './legacySchema.js';
@@ -93,61 +93,37 @@ if (config.legacyDB?.url) {
 			.from(legacySchema.chat);
 
 		messages.forEach(async (message) => {
-			const pix = {
+			const msg = {
 				...message,
 				userId: message.userId ? uuidFromInt(message.userId) : undefined,
 				timestamp: new Date(message.timestamp * 1000)
 			};
 
-			await tx.insert(schema.chat).values(pix).onConflictDoNothing();
+			await tx.insert(schema.chat).values(msg).onConflictDoNothing();
 		});
 
-		/* const pixels = await legacyDb
-			.select({
-				x: legacySchema.pixels.x,
-				y: legacySchema.pixels.y,
-				time: legacySchema.pixels.time,
-				userId: legacySchema.pixels.who,
-				color: legacySchema.pixels.color
-			})
-			.from(legacySchema.pixels);
+		for (let row = 0; row < config.size.height; row++) {
+			const pixelMap = await legacyDb
+				.select({
+					userId: legacySchema.pixels.who,
+					x: legacySchema.pixels.x,
+					time: legacySchema.pixels.time,
+					color: legacySchema.pixels.color
+				})
+				.from(legacySchema.pixels)
+				.where(
+					and(eq(legacySchema.pixels.most_recent, true), eq(legacySchema.pixels.y, row))
+				);
 
-		pixels.forEach(async (pixel) => {
-			const pix = {
+			const pixels = pixelMap.map((pixel) => ({
 				...pixel,
-				userId: pixel.userId ? userMap.get(pixel.userId) : undefined
-			};
+				y: row,
+				userId: pixel.userId ? uuidFromInt(pixel.userId) : undefined
+			}));
 
-			await tx.insert(schema.pixelPlacements).values(pix).onConflictDoNothing();
-		}); */
-
-		const pixelMap = await legacyDb
-			.select({
-				userId: legacySchema.pixels.who,
-				x: legacySchema.pixels.x,
-				y: legacySchema.pixels.y,
-				time: legacySchema.pixels.time,
-				color: legacySchema.pixels.color
-			})
-			.from(legacySchema.pixels)
-			.where(eq(legacySchema.pixels.most_recent, true));
-
-		const pixels = pixelMap.map((pixel) => ({
-			...pixel,
-			userId: pixel.userId ? uuidFromInt(pixel.userId) : undefined
-		}));
-
-		pixels.forEach(async (pix) => {
-			await tx
-				.insert(schema.pixelMap)
-				.values(pix)
-				.onConflictDoUpdate({
-					target: [schema.pixelMap.x, schema.pixelMap.y],
-					set: { color: pix.color }
-				});
-
-			await tx.insert(schema.pixelPlacements).values(pix).onConflictDoNothing();
-		});
+			await tx.insert(schema.pixelMap).values(pixels).onConflictDoNothing();
+			await tx.insert(schema.pixelPlacements).values(pixels).onConflictDoNothing();
+		}
 	});
 
 	console.log('success!');
