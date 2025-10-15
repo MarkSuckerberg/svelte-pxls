@@ -15,21 +15,37 @@ const providers: Provider[] = [];
 if (config.providers.discord?.enabled) {
 	providers.push(
 		Discord({
-			...config.providers.discord
+			...config.providers.discord,
+			authorization: {
+				params: { scope: 'identify' }
+			}
 		})
 	);
 }
 if (config.providers.google?.enabled) {
 	providers.push(
 		Google({
-			...config.providers.google
+			...config.providers.google,
+			authorization: {
+				params: {
+					scope: 'openid profile'
+				}
+			}
 		})
 	);
 }
 if (config.providers.twitch?.enabled) {
 	providers.push(
 		Twitch({
-			...config.providers.twitch
+			...config.providers.twitch,
+			authorization: {
+				params: {
+					scope: 'openid',
+					claims: {
+						id_token: { picture: null, preferred_username: null }
+					}
+				}
+			}
 		})
 	);
 }
@@ -52,9 +68,26 @@ export const authConfig = {
 		strategy: 'jwt'
 	},
 	callbacks: {
-		async signIn({ user }) {
+		async signIn({ user, profile }) {
 			if (!user.id) {
 				return true;
+			}
+
+			if (profile) {
+				const profileData = profile as UserProfile;
+				let newImage: string | undefined;
+
+				if ('picture' in profileData) {
+					newImage = profileData.picture;
+				} else if ('image_url' in profileData) {
+					newImage = profileData.image_url;
+				}
+
+				if (newImage) {
+					db.update(users)
+						.set({ image: newImage })
+						.where(eq(users.id, user.id as UUID));
+				}
 			}
 
 			//Get bans for the user ID, that have not expired
