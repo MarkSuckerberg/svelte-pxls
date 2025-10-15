@@ -21,6 +21,7 @@
 	import PopoverContent from './ui/popover/popover-content.svelte';
 	import PopoverTrigger from './ui/popover/popover-trigger.svelte';
 	import UserLazyPopover from './UserLazyPopover.svelte';
+	import { emojiExtension } from '$lib/emoji';
 
 	let messages: ChatMessage[] = $state([]);
 	let { socket, signedIn = false }: { socket: ClientSocket; signedIn?: boolean } = $props();
@@ -39,37 +40,8 @@
 		const emojiDB = new (await import('emoji-picker-element/database')).default({
 			customEmoji
 		});
-
-		const indexRegex = /:[0-9a-z_\-+]/i;
-		const tokenRegex = /:([0-9a-z_\-+]+):/i;
-
-		lexer = marked.use({
-			extensions: [
-				{
-					name: 'emoji',
-					level: 'inline',
-					start(src) {
-						return src.match(indexRegex)?.index;
-					},
-					tokenizer(src, tokens) {
-						const match = tokenRegex.exec(src);
-
-						if (match === null || match.length < 2) {
-							return;
-						}
-
-						const emoji = emojiDB.getEmojiByShortcode(match[1]);
-
-						return {
-							type: 'emoji',
-							raw: match[0],
-							emoji: emoji,
-							tokens: []
-						};
-					}
-				}
-			]
-		}).Lexer.lexInline;
+		
+		lexer = marked.use(emojiExtension(emojiDB)).Lexer.lexInline;
 
 		ScrollToBottom();
 	});

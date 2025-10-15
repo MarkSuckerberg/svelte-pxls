@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { EmojiToken } from '$lib/types';
+	import type { EmojiToken } from '$lib/emoji';
 	import type { MarkdownOptions, Renderers } from '@magidoc/plugin-svelte-marked';
 
 	export let token: EmojiToken;
