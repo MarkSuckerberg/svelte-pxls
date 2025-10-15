@@ -7,9 +7,14 @@ import colorFile from './colors.json' with { type: 'json' };
 import type { User } from './server/user.server.js';
 import type { LimitedUserInfo, UserInfo } from './userinfo.js';
 import type { Tokens } from 'marked';
-import type { UserInfo } from './userinfo.js';
+import type { Emoji } from 'emoji-picker-element/shared';
 
 export type ClientSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
+
+export interface EmojiToken extends Tokens.Generic {
+	type: 'emoji'
+	emoji: Promise<Emoji | null>
+}
 
 export interface Coords {
 	x: number;
