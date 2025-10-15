@@ -13,11 +13,12 @@ import {
 
 import type { ResponseInternal } from '@auth/core/types';
 import type { Session } from '@auth/sveltekit';
+import { type UUID } from 'crypto';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import type { Server } from 'http';
 import type { Http2SecureServer, Http2Server } from 'http2';
 import type { Server as HTTPSServer } from 'https';
-import { Server as SocketServer } from 'socket.io';
+import { Socket, Server as SocketServer } from 'socket.io';
 import { authConfig } from './authConfig.server.js';
 import { config } from './config.server.js';
 import {
@@ -30,6 +31,7 @@ import {
 	users
 } from './lib/server/db/index.js';
 import { User } from './lib/server/user.server.js';
+import { GetUserInfo, GetUserInfoUsername } from './lib/userinfo.js';
 
 export class PixelSocketServer {
 	public static async fromFile(
@@ -56,6 +58,8 @@ export class PixelSocketServer {
 	}
 
 	public users: Map<string, SocketData> = new Map();
+	public sessions: Map<UUID, Set<Socket<ClientToServerEvents, ServerToClientEvents>>> = new Map();
+
 	public readonly grid: ArrayGrid;
 	public readonly io: SocketServer<
 		ClientToServerEvents,
@@ -120,7 +124,11 @@ export class PixelSocketServer {
 			}
 
 			if (socket.data.session?.user) {
-				socket.data.user = await User.byId(socket.data.session.user.id);
+				socket.data.user = await User.byId(socket.data.session.user.id as UUID);
+
+				if (!socket.data.user) {
+					return;
+				}
 
 				const address = socket.request.socket.remoteAddress;
 				if (!address) {
@@ -137,6 +145,12 @@ export class PixelSocketServer {
 				if (ban) {
 					next(new Error('You have been banned for reason: ' + ban.reason));
 					return;
+				}
+
+				if (this.sessions.has(socket.data.user.id)) {
+					this.sessions.get(socket.data.user.id)?.add(socket);
+				} else {
+					this.sessions.set(socket.data.session.user.id as UUID, new Set([socket]));
 				}
 
 				await db
@@ -159,13 +173,26 @@ export class PixelSocketServer {
 			socket.on('disconnect', () => {
 				this.users.delete(socket.id);
 
+				if (socket.data.user) {
+					this.sessions.get(socket.data.user?.id)?.delete(socket);
+				}
+
 				this.io.emit('users', this.userList());
 			});
 
 			socket.on('pixelInfo', async (loc, ack) => {
 				const info = (
 					await db
-						.select()
+						.select({
+							user: {
+								name: users.name,
+								mod: users.mod,
+								placed: users.placed,
+								id: users.id,
+								avatar: users.image
+							},
+							time: pixelPlacements.time
+						})
 						.from(pixelPlacements)
 						.where(and(eq(pixelPlacements.x, loc.x), eq(pixelPlacements.y, loc.y)))
 						.orderBy(pixelPlacements.time)
@@ -179,11 +206,8 @@ export class PixelSocketServer {
 				}
 
 				ack({
-					placer: info.user.name,
-					placerPlaced: info.user.placed,
-					placerAvatar: info.user.image,
-					placerMod: info.user.mod,
-					time: info.pixelPlace.time.getTime()
+					placer: info.user,
+					time: info.time.getTime()
 				});
 				return;
 			});
@@ -211,14 +235,25 @@ export class PixelSocketServer {
 					socket.emit('chat', result);
 				});
 
+			socket.on('idInfo', async (id, ack) => {
+				ack(await GetUserInfo(id));
+			});
+
+			socket.on('usernameInfo', async (username, ack) => {
+				ack(await GetUserInfoUsername(username));
+			});
+
 			//TODO: Refactor into user and admin namespaces?
 
 			if (!socket.data.user) {
 				socket.emit('userInfo', {
 					pixels: 0,
+					id: '000000-0000-0000-0000-000000000000',
+					name: 'Guest',
 					maxPixels: 0,
 					lastTicked: Date.now(),
 					placed: 0,
+					avatar: null,
 					mod: false
 				});
 
@@ -259,6 +294,10 @@ export class PixelSocketServer {
 
 				socket.broadcast.emit('pixelUpdate', pixels);
 				ack(pixels);
+
+				this.sessions.get(data.user.id)?.forEach((socket) => {
+					socket.emit('userInfo', data.user.info());
+				});
 
 				toFile(this.grid, 'data/board.dat');
 			});

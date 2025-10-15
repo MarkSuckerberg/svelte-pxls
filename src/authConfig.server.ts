@@ -4,6 +4,7 @@ import Discord, { type DiscordProfile } from '@auth/core/providers/discord';
 import Google, { type GoogleProfile } from '@auth/core/providers/google';
 import Twitch, { type TwitchProfile } from '@auth/core/providers/twitch';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
+import type { UUID } from 'crypto';
 import { and, eq, gte } from 'drizzle-orm';
 import { config } from './config.server.js';
 import { accounts, bans, db, users } from './lib/server/db/index.js';
@@ -66,7 +67,8 @@ export const authConfig = {
 		},
 		jwt({ token, user }) {
 			if (user?.id && !token.userId) {
-				token.userId = user.id;
+				//TODO: Fix typing override of module
+				token.userId = user.id as UUID;
 			}
 
 			return token;

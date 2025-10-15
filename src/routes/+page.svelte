@@ -30,8 +30,6 @@
 	let grid = $state(false);
 	let moving = $state(false);
 
-	let currentUsers: string[] = $state([]);
-
 	async function startSocket() {
 		const getSocket: ClientSocket = io({
 			rememberUpgrade: true
@@ -43,12 +41,8 @@
 
 		socket = getSocket;
 
-		socket.on('userInfo', (user) => {
+		socket.once('userInfo', (user) => {
 			userInfo = user;
-		});
-
-		socket.on('users', (users) => {
-			currentUsers = users;
 		});
 	}
 

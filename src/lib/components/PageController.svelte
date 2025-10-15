@@ -25,6 +25,7 @@
 	import { toast } from 'svelte-sonner';
 	import { SvelteURL } from 'svelte/reactivity';
 	import UserAvatar from './UserAvatar.svelte';
+	import { buttonVariants } from './ui/button';
 
 	let {
 		pan = $bindable({ x: 0, y: 0 }),
@@ -101,30 +102,35 @@
 		});
 	interact(editData.canvas).styleCursor(false).on('tap', onTap).on('doubletap', onDoubleTap);
 
-	let nextPixel = $state(Math.floor(20 - (Date.now() - userInfo.lastTicked) / 1000));
-	setTimeout(
-		() => {
-			nextPixel = Math.floor(20 - (Date.now() - userInfo.lastTicked) / 1000);
-			setInterval(() => {
-				nextPixel = Math.floor(20 - (Date.now() - userInfo.lastTicked) / 1000);
-			}, 1000);
-		},
-		//Offset to try to match times with the server
-		(Date.now() - userInfo.lastTicked) % 1000
+	let nextPixel = $state(
+		userInfo ? Math.floor(20 - (Date.now() - userInfo.lastTicked) / 1000) : 20
 	);
 
-	setTimeout(
-		() => {
-			userInfo.pixels = Math.min(userInfo.maxPixels, userInfo.pixels + 1);
-			userInfo.lastTicked = Date.now();
+	if (userInfo) {
+		setTimeout(
+			() => {
+				nextPixel = Math.floor(20 - (Date.now() - userInfo.lastTicked) / 1000);
+				setInterval(() => {
+					nextPixel = Math.floor(20 - (Date.now() - userInfo.lastTicked) / 1000);
+				}, 1000);
+			},
+			//Offset to try to match times with the server
+			(Date.now() - userInfo.lastTicked) % 1000
+		);
 
-			setInterval(() => {
+		setTimeout(
+			() => {
 				userInfo.pixels = Math.min(userInfo.maxPixels, userInfo.pixels + 1);
 				userInfo.lastTicked = Date.now();
-			}, 20 * 1000);
-		},
-		20 * 1000 - (Date.now() - userInfo.lastTicked)
-	);
+
+				setInterval(() => {
+					userInfo.pixels = Math.min(userInfo.maxPixels, userInfo.pixels + 1);
+					userInfo.lastTicked = Date.now();
+				}, 20 * 1000);
+			},
+			20 * 1000 - (Date.now() - userInfo.lastTicked)
+		);
+	}
 
 	socket.on('map', (mapData, size) => {
 		if (size.height != displayData.height || size.width != displayData.width) {
@@ -132,6 +138,13 @@
 		}
 
 		displayData.setData(mapData);
+	});
+
+	socket.on('userInfo', (user) => {
+		userInfo.maxPixels = user.maxPixels;
+		userInfo.lastTicked = user.lastTicked;
+		userInfo.pixels = user.pixels;
+		userInfo.placed = user.placed;
 	});
 
 	function handleMove(event: SignalArgs['interactions:move'] & (PointerEvent | GestureEvent)) {
@@ -351,7 +364,6 @@
 	function onKey(event: KeyboardEvent, down: boolean) {
 		if (event.key == ' ') {
 			spaceDown = down;
-			event.preventDefault();
 			return;
 		}
 
@@ -361,20 +373,23 @@
 
 		switch (event.key) {
 			case 'Escape':
-				selectedPixel = undefined;
-				editing = false;
+				if (selectedPixel || editing) {
+					selectedPixel = undefined;
+					editing = false;
+
+					event.preventDefault();
+				}
 				break;
 			case 'Enter':
 				if (editing) {
 					submitEditsToast();
+					event.preventDefault();
 				}
 				break;
 			default:
 				//No recognised key, so don't prevent anything
 				return;
 		}
-
-		event.preventDefault();
 	}
 
 	let currentUsers: string[] = $state([]);
@@ -384,7 +399,7 @@
 	});
 </script>
 
-<UserAvatar {userInfo} session={page.data.session} {currentUsers} />
+<UserAvatar {userInfo} {currentUsers} {socket} />
 
 {#if reticlePosition}
 	<Reticle {reticlePosition} {selectedColorIdx} {scale} />
@@ -428,7 +443,7 @@
 	{/if}
 {:else}
 	<div class="absolute right-0 bottom-0 left-0 mx-auto w-2xl">
-		<SignIn class="btn w-full preset-filled-primary-500">
+		<SignIn class={buttonVariants({ variant: 'default' }) + ' w-full'}>
 			<span>Sign in</span>
 		</SignIn>
 	</div>

@@ -1,4 +1,5 @@
 import type { AdapterAccountType } from '@auth/core/adapters';
+import type { UUID } from 'crypto';
 import {
 	boolean,
 	inet,
@@ -27,7 +28,8 @@ const userIdOptional = uuid('userId').references(() => users.id, {
 export const users = pgTable('user', {
 	id: uuid('id')
 		.primaryKey()
-		.$defaultFn(() => crypto.randomUUID()),
+		.$defaultFn(() => crypto.randomUUID())
+		.$type<UUID>(),
 	name: text('name').notNull().unique(),
 	email: text('email').unique(),
 	emailVerified: timestamp('emailVerified', { mode: 'date' }),

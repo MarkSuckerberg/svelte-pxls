@@ -1,5 +1,5 @@
 import type { OAuthConfig, OAuthUserConfig } from '@auth/core/providers';
-import type { Profile, TokenSet } from '@auth/core/types';
+import type { TokenSet } from '@auth/core/types';
 
 interface TumblrInternalProfile {
 	meta: {

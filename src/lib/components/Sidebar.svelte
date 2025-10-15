@@ -5,13 +5,30 @@
 	import Settings from '@lucide/svelte/icons/settings';
 	import TriangleDashed from '@lucide/svelte/icons/triangle-dashed';
 
+	import type { PixelEditCanvas } from '$lib/pixelCanvas.svelte';
+	import type { TemplateData } from '$lib/template.svelte';
+	import type { ClientSocket, PixelSession } from '$lib/types';
+	import type { UserInfo } from '$lib/userinfo';
 	import ShieldUser from '@lucide/svelte/icons/shield-user';
 	import Chat from './Chat.svelte';
 	import ModMenu from './ModMenu.svelte';
 	import Template from './Template.svelte';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+	import UserSettings from './UserSettings.svelte';
 
-	let { socket, templateData, editData, session, userInfo } = $props();
+	let {
+		socket,
+		templateData,
+		editData,
+		session,
+		userInfo
+	}: {
+		socket: ClientSocket;
+		templateData: TemplateData;
+		editData: PixelEditCanvas;
+		session: PixelSession | null;
+		userInfo: UserInfo;
+	} = $props();
 </script>
 
 <Sidebar.Root side="right" collapsible="offcanvas">
@@ -41,6 +58,9 @@
 					boardSize={{ width: editData.width, height: editData.height }}
 					{templateData}
 				/>
+			</TabsContent>
+			<TabsContent value="settings">
+				<UserSettings {userInfo} />
 			</TabsContent>
 			{#if userInfo.mod}
 				<TabsContent value="mod">

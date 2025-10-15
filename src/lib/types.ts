@@ -1,9 +1,12 @@
 export const DEFAULT_COLOR_INDEX = 8;
 
 import type { Session } from '@auth/sveltekit';
+import type { UUID } from 'crypto';
 import type { Socket } from 'socket.io-client';
 import colorFile from './colors.json' with { type: 'json' };
 import type { User } from './server/user.server.js';
+import type { LimitedUserInfo, UserInfo } from './userinfo.js';
+import type { Tokens } from 'marked';
 import type { UserInfo } from './userinfo.js';
 
 export type ClientSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -45,10 +48,7 @@ export type ServerToClientEvents = {
 };
 
 export interface PixelInfo {
-	placer: string;
-	placerPlaced: number;
-	placerAvatar: string | null;
-	placerMod: boolean;
+	placer: LimitedUserInfo;
 	time: number;
 }
 
@@ -57,6 +57,8 @@ export type ClientToServerEvents = {
 	pixelInfo: (location: Coords, ack: (pixel: PixelInfo | null) => void) => void;
 	ban: (ban: Ban, ack: (banId?: number) => void) => void;
 	chat: (message: string) => void;
+	idInfo: (id: string, ack: (info: LimitedUserInfo | null) => void) => void;
+	usernameInfo: (username: string, ack: (info: LimitedUserInfo | null) => void) => void;
 };
 
 export type InterServerEvents = never;
@@ -114,9 +116,22 @@ export function get1DPosition3D(x: number, y: number, z: number, width: number, 
 	return (x % width) + y * width + z * depth;
 }
 
+//TODO: make this extend UserInfo
+declare module '@auth/core/types' {
+	interface User {
+		id: UUID | string;
+	}
+}
+
 declare module '@auth/sveltekit' {
 	interface User {
-		id: string;
+		id: UUID | string;
+	}
+}
+
+declare module '@auth/core/adapters' {
+	interface AdapterUser {
+		id: UUID | string;
 	}
 }
 
@@ -124,6 +139,6 @@ declare module '@auth/core/jwt' {
 	/** Returned by the `jwt` callback and `auth`, when using JWT sessions */
 	interface JWT {
 		/** User ID number stored in the database */
-		userId: string;
+		userId: UUID;
 	}
 }

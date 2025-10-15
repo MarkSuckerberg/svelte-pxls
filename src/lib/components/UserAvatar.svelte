@@ -3,19 +3,20 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Popover, PopoverTrigger } from '$lib/components/ui/popover';
 	import PopoverContent from '$lib/components/ui/popover/popover-content.svelte';
+	import type { ClientSocket } from '$lib/types';
 	import type { UserInfo } from '$lib/userinfo';
-	import type { Session } from '@auth/sveltekit';
 	import BadgeQuestionMark from '@lucide/svelte/icons/badge-question-mark';
 	import { Avatar, ProgressRing } from '@skeletonlabs/skeleton-svelte';
+	import UserLazyPopover from './UserLazyPopover.svelte';
 	let {
 		userInfo,
-		session,
-		currentUsers
-	}: { userInfo?: UserInfo; session?: Session | null; currentUsers: string[] } = $props();
+		currentUsers,
+		socket
+	}: { userInfo?: UserInfo; currentUsers: string[]; socket: ClientSocket } = $props();
 </script>
 
 <div class="absolute z-10 m-2">
-	{#if session}
+	{#if userInfo && userInfo.id != '000000-0000-0000-0000-000000000000'}
 		<Popover>
 			<PopoverTrigger>
 				<ProgressRing
@@ -24,8 +25,8 @@
 					meterStroke="stroke-primary-800-200"
 				>
 					<Avatar
-						src={session.user?.image || undefined}
-						name={session.user?.name || 'Unknown'}
+						src={userInfo?.avatar || undefined}
+						name={userInfo?.name || 'Unknown'}
 						size="size-14"
 					></Avatar>
 				</ProgressRing>
@@ -34,10 +35,10 @@
 				<h3>Signed in as:</h3>
 				<ul>
 					<li>
-						Username: {session.user?.name}
+						Username: {userInfo?.name}
 					</li>
 					<li>
-						ID: {session.user?.id}
+						ID: {userInfo?.id}
 					</li>
 					{#if userInfo}
 						<li>
@@ -56,6 +57,10 @@
 				</ul>
 
 				<p>
+					{#each currentUsers as username (username)}
+						<UserLazyPopover {username} {socket} />
+					{/each}
+
 					<span title={currentUsers.join(', ')}>
 						{currentUsers.length} user{currentUsers.length != 1 ? 's' : ''} online
 					</span>

@@ -3,7 +3,6 @@
 	import ClipboardCopy from '@lucide/svelte/icons/clipboard-copy';
 	import Save from '@lucide/svelte/icons/save';
 	import Exit from '@lucide/svelte/icons/x';
-	import { Avatar } from '@skeletonlabs/skeleton-svelte';
 	import { slide } from 'svelte/transition';
 	import type { ArrayGrid } from '../arrayGrid';
 	import { colorNames, colors, type ClientSocket, type Coords } from '../types';
@@ -15,6 +14,7 @@
 	import PopoverContent from './ui/popover/popover-content.svelte';
 	import PopoverTrigger from './ui/popover/popover-trigger.svelte';
 	import { Spinner } from './ui/spinner';
+	import UserCard from './UserCard.svelte';
 
 	let {
 		selectedPixel,
@@ -93,12 +93,7 @@
 	class="pointer-events-none absolute bottom-0 left-1/8 flex w-3/4 flex-col items-center justify-center *:pointer-events-auto"
 	transition:slide
 >
-	<Button
-		class="h-20 w-4xl bg-chart-2"
-		variant="secondary"
-		style={`background: linear-gradient(to right, var(--secondary) ${progress}%, var(--accent) ${progress + 0.5}%)`}
-		onclick={onDrawButton}
-	>
+	<Button class="h-20 w-4xl bg-chart-2" variant="secondary" onclick={onDrawButton}>
 		<Brush />
 		<span>Draw</span>
 		<span>-</span>
@@ -131,21 +126,11 @@
 							<li>
 								Placer:
 								<Popover>
-									<PopoverTrigger class="underline">{info.placer}</PopoverTrigger>
+									<PopoverTrigger class="underline">
+										{info.placer.name}
+									</PopoverTrigger>
 									<PopoverContent class="flex gap-2">
-										<Avatar
-											name={info.placer}
-											src={info.placerAvatar || undefined}
-											border={info.placerMod
-												? 'border-2 border-amber-400'
-												: ''}
-										/>
-										<div>
-											<h3 class="font-bold">{info.placer}</h3>
-											<p>
-												{info.placerPlaced.toLocaleString()} pixels placed
-											</p>
-										</div>
+										<UserCard info={info.placer} />
 									</PopoverContent>
 								</Popover>
 							</li>
