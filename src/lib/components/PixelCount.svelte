@@ -7,7 +7,7 @@
 		nextPixel,
 		showRing = false,
 		showBar = false,
-		usedPixels = 0
+		usedPixels
 	}: {
 		userInfo: UserInfo;
 		nextPixel: number;
@@ -39,8 +39,9 @@
 				value={usedPixels}
 				max={userInfo.maxPixels}
 				classes="relative bottom-2 h-2"
-				meterBg="bg-warning-500"
+				meterBg="bg-destructive"
 				trackBg="bg-transparent"
+				meterTransition=""
 			/>
 		{/if}
 	</div>

@@ -33,7 +33,12 @@
 <div transition:slide class="fixed bottom-0 left-0 z-2 w-full rounded-b-none">
 	<Card class="w-full rounded-b-none">
 		<CardHeader class="flex">
-			<Button class="h-12 flex-1 justify-end" onclick={clearEdits} variant="destructive">
+			<Button
+				class="h-12 flex-1 justify-end"
+				onclick={clearEdits}
+				variant="destructive"
+				disabled={!edits.size}
+			>
 				<span>Clear {edits.size} Edit{edits.size === 1 ? '' : 's'}</span>
 				<Trash />
 			</Button>

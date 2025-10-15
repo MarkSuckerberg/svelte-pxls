@@ -17,8 +17,8 @@
 		type Pixel,
 		type PixelSession
 	} from '$lib/types';
-	import type { UserInfo } from '$lib/userinfo';
 
+	import type { PixelsClient } from '$lib/client.svelte';
 	import type { GestureEvent } from '@interactjs/actions/gesture/plugin';
 	import type { SignalArgs } from '@interactjs/core/scope';
 	import interact from 'interactjs';
@@ -34,11 +34,10 @@
 		session,
 		editData,
 		displayData,
-		socket,
 		container,
 		initialColor,
-		initialInfo,
-		templateCtx
+		templateCtx,
+		client
 	}: {
 		pan: Coords;
 		scale: number;
@@ -46,16 +45,11 @@
 		session: PixelSession | null;
 		editData: PixelEditCanvas;
 		displayData: PixelCanvas;
-		socket: ClientSocket;
 		container: HTMLDivElement;
 		initialColor: number;
-		initialInfo: UserInfo;
 		templateCtx: CanvasRenderingContext2D;
+		client: PixelsClient;
 	} = $props();
-
-	const userInfo: UserInfo = {
-		...initialInfo
-	};
 
 	let selectedColorIdx = $state(initialColor || DEFAULT_COLOR_INDEX);
 
@@ -102,49 +96,12 @@
 		});
 	interact(editData.canvas).styleCursor(false).on('tap', onTap).on('doubletap', onDoubleTap);
 
-	let nextPixel = $state(
-		userInfo ? Math.floor(20 - (Date.now() - userInfo.lastTicked) / 1000) : 20
-	);
-
-	if (userInfo) {
-		setTimeout(
-			() => {
-				nextPixel = Math.floor(20 - (Date.now() - userInfo.lastTicked) / 1000);
-				setInterval(() => {
-					nextPixel = Math.floor(20 - (Date.now() - userInfo.lastTicked) / 1000);
-				}, 1000);
-			},
-			//Offset to try to match times with the server
-			(Date.now() - userInfo.lastTicked) % 1000
-		);
-
-		setTimeout(
-			() => {
-				userInfo.pixels = Math.min(userInfo.maxPixels, userInfo.pixels + 1);
-				userInfo.lastTicked = Date.now();
-
-				setInterval(() => {
-					userInfo.pixels = Math.min(userInfo.maxPixels, userInfo.pixels + 1);
-					userInfo.lastTicked = Date.now();
-				}, 20 * 1000);
-			},
-			20 * 1000 - (Date.now() - userInfo.lastTicked)
-		);
-	}
-
-	socket.on('map', (mapData, size) => {
+	client.socket.on('map', (mapData, size) => {
 		if (size.height != displayData.height || size.width != displayData.width) {
 			return;
 		}
 
 		displayData.setData(mapData);
-	});
-
-	socket.on('userInfo', (user) => {
-		userInfo.maxPixels = user.maxPixels;
-		userInfo.lastTicked = user.lastTicked;
-		userInfo.pixels = user.pixels;
-		userInfo.placed = user.placed;
 	});
 
 	function handleMove(event: SignalArgs['interactions:move'] & (PointerEvent | GestureEvent)) {
@@ -236,7 +193,7 @@
 			return;
 		}
 
-		if (editData.edits.size >= userInfo.pixels) {
+		if (editData.edits.size >= client.info.pixels) {
 			return;
 		}
 
@@ -249,12 +206,14 @@
 			return;
 		}
 
-		const pixels: Pixel[] = await socket.timeout(10000).emitWithAck('place', editData.getAll());
+		const pixels: Pixel[] = await client.socket
+			.timeout(10000)
+			.emitWithAck('place', editData.getAll());
 
 		setEditing(false);
 		editData.clearEdits();
 		displayData.setPixels(pixels);
-		userInfo.pixels -= pixels.length;
+		client.info.pixels -= pixels.length;
 	}
 
 	async function submitEditsToast() {
@@ -391,15 +350,9 @@
 				return;
 		}
 	}
-
-	let currentUsers: string[] = $state([]);
-
-	socket.on('users', (users) => {
-		currentUsers = users;
-	});
 </script>
 
-<UserAvatar {userInfo} {currentUsers} {socket} />
+<UserAvatar {client} />
 
 {#if reticlePosition}
 	<Reticle {reticlePosition} {selectedColorIdx} {scale} />
@@ -422,8 +375,8 @@
 			onSubmit={() => submitEditsToast()}
 			edits={editData.edits}
 			onClose={() => setEditing(false)}
-			{userInfo}
-			{nextPixel}
+			userInfo={client.info}
+			nextPixel={client.nextPixel}
 		/>
 	{/if}
 
@@ -433,12 +386,10 @@
 			array={displayData.array}
 			{scale}
 			{center}
-			{socket}
-			{userInfo}
-			{nextPixel}
 			onClose={() => (selectedPixel = undefined)}
 			onDrawButton={() => setEditing(true)}
 			canvas={displayData.canvas}
+			{client}
 		/>
 	{/if}
 {:else}
@@ -449,6 +400,6 @@
 	</div>
 {/if}
 
-<Sidebar {editData} {session} {socket} {templateData} {userInfo} />
+<Sidebar {editData} {session} {templateData} {client} />
 
 <svelte:window onkeydown={(event) => onKey(event, true)} onkeyup={(event) => onKey(event, false)} />

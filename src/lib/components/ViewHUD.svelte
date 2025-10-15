@@ -1,12 +1,12 @@
 <script lang="ts">
+	import type { PixelsClient } from '$lib/client.svelte';
 	import Brush from '@lucide/svelte/icons/brush';
 	import ClipboardCopy from '@lucide/svelte/icons/clipboard-copy';
 	import Save from '@lucide/svelte/icons/save';
 	import Exit from '@lucide/svelte/icons/x';
 	import { slide } from 'svelte/transition';
 	import type { ArrayGrid } from '../arrayGrid';
-	import { colorNames, colors, type ClientSocket, type Coords } from '../types';
-	import type { UserInfo } from '../userinfo';
+	import { colorNames, colors, type Coords } from '../types';
 	import PixelCount from './PixelCount.svelte';
 	import Button from './ui/button/button.svelte';
 	import { Card, CardContent } from './ui/card';
@@ -23,10 +23,8 @@
 		onClose,
 		scale = 1,
 		center,
-		socket,
-		userInfo,
-		nextPixel,
-		canvas
+		canvas,
+		client
 	}: {
 		selectedPixel: Coords | undefined;
 		array: ArrayGrid | undefined;
@@ -34,15 +32,13 @@
 		onDrawButton: (event: MouseEvent) => void;
 		scale: number;
 		center: (coords: Coords) => Coords;
-		socket: ClientSocket;
-		userInfo: UserInfo;
-		nextPixel: number;
 		canvas: HTMLCanvasElement;
+		client: PixelsClient;
 	} = $props();
 
 	let linkCopied: Coords | undefined = $state();
 
-	let progress = $derived((userInfo.pixels / userInfo.maxPixels) * 100);
+	let progress = $derived((client.info.pixels / client.info.maxPixels) * 100);
 
 	let selectedPixelColor = $derived.by(() => {
 		if (!selectedPixel || !array) {
@@ -97,7 +93,7 @@
 		<Brush />
 		<span>Draw</span>
 		<span>-</span>
-		<PixelCount {userInfo} {nextPixel} showRing />
+		<PixelCount userInfo={client.info} nextPixel={client.nextPixel} showRing />
 	</Button>
 	{#if selectedPixel}
 		<Card class="w-3/4 text-center">
@@ -119,8 +115,8 @@
 					<li>
 						Color: {selectedPixelColor}
 					</li>
-					{#await socket.emitWithAck('pixelInfo', selectedPixel)}
-						<Spinner />
+					{#await client.socket.emitWithAck('pixelInfo', selectedPixel)}
+						<li><Spinner /></li>
 					{:then info}
 						{#if info}
 							<li>
@@ -137,6 +133,8 @@
 							<li>
 								Time: {info ? new Date(info.time) : ''}
 							</li>
+						{:else}
+							<li>Unplaced</li>
 						{/if}
 					{/await}
 					<li>

@@ -5,10 +5,10 @@
 	import Settings from '@lucide/svelte/icons/settings';
 	import TriangleDashed from '@lucide/svelte/icons/triangle-dashed';
 
+	import type { PixelsClient } from '$lib/client.svelte';
 	import type { PixelEditCanvas } from '$lib/pixelCanvas.svelte';
 	import type { TemplateData } from '$lib/template.svelte';
-	import type { ClientSocket, PixelSession } from '$lib/types';
-	import type { UserInfo } from '$lib/userinfo';
+	import type { PixelSession } from '$lib/types';
 	import ShieldUser from '@lucide/svelte/icons/shield-user';
 	import Chat from './Chat.svelte';
 	import ModMenu from './ModMenu.svelte';
@@ -17,17 +17,15 @@
 	import UserSettings from './UserSettings.svelte';
 
 	let {
-		socket,
 		templateData,
 		editData,
 		session,
-		userInfo
+		client
 	}: {
-		socket: ClientSocket;
 		templateData: TemplateData;
 		editData: PixelEditCanvas;
 		session: PixelSession | null;
-		userInfo: UserInfo;
+		client: PixelsClient;
 	} = $props();
 </script>
 
@@ -44,14 +42,14 @@
 				<TabsTrigger value="chat"><MessageSquareMore /> Chat</TabsTrigger>
 				<TabsTrigger value="template"><TriangleDashed /> Template</TabsTrigger>
 				<TabsTrigger value="settings"><Settings /> Settings</TabsTrigger>
-				{#if userInfo.mod}
+				{#if client.info.mod}
 					<TabsTrigger value="mod"><ShieldUser /> Mod Tools</TabsTrigger>
 				{/if}
 			</TabsList>
 		</Sidebar.Header>
 		<div class="h-[95%] flex-1 grow">
 			<TabsContent value="chat" class="h-full">
-				<Chat {socket} signedIn={!!session} />
+				<Chat {client} signedIn={!!session} />
 			</TabsContent>
 			<TabsContent value="template">
 				<Template
@@ -60,11 +58,11 @@
 				/>
 			</TabsContent>
 			<TabsContent value="settings">
-				<UserSettings {userInfo} />
+				<UserSettings userInfo={client.info} />
 			</TabsContent>
-			{#if userInfo.mod}
+			{#if client.info.mod}
 				<TabsContent value="mod">
-					<ModMenu {socket} />
+					<ModMenu socket={client.socket} />
 				</TabsContent>
 			{/if}
 		</div>

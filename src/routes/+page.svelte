@@ -1,10 +1,9 @@
 <script lang="ts">
+	import { PixelsClient } from '$lib/client.svelte';
 	import Grid from '$lib/components/Grid.svelte';
 	import PageController from '$lib/components/PageController.svelte';
 	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
-	import { type ClientSocket, type Dimensions, type Pixel } from '$lib/types';
-	import type { UserInfo } from '$lib/userinfo';
-	import { io } from 'socket.io-client';
+	import { type Dimensions, type Pixel } from '$lib/types';
 	import { onMount } from 'svelte';
 	import type { PageProps } from './$types';
 
@@ -21,35 +20,15 @@
 
 	let container: HTMLDivElement | undefined = $state();
 
-	let userInfo: UserInfo | undefined = $state();
-
 	let displayData: PixelCanvas | undefined = $state();
 	let editData: PixelEditCanvas | undefined = $state();
-	let socket: ClientSocket | undefined = $state();
 
 	let grid = $state(false);
 	let moving = $state(false);
 
-	async function startSocket() {
-		const getSocket: ClientSocket = io({
-			rememberUpgrade: true
-		});
-
-		if (!getSocket) {
-			throw new Error('Failed to connect to websocket');
-		}
-
-		socket = getSocket;
-
-		socket.once('userInfo', (user) => {
-			userInfo = user;
-		});
-	}
-
 	function startCanvas(dimensions: Dimensions, array?: Uint8Array) {
 		displayData = new PixelCanvas(canvas, dimensions, array, 0, {
-			alpha: false,
-			desynchronized: true
+			alpha: false
 		});
 
 		const storedEdits = localStorage.getItem('currentEdits');
@@ -63,9 +42,12 @@
 		templateCtx.imageSmoothingEnabled = false;
 	}
 
+	let client: PixelsClient | undefined = $state();
+
 	onMount(() => {
 		startCanvas(data.dimensions, data.array);
-		startSocket();
+
+		PixelsClient.startClient().then((newClient) => (client = newClient));
 	});
 </script>
 
@@ -131,19 +113,18 @@
 	</div>
 </div>
 
-{#if editData && displayData && socket && userInfo && templateCtx}
+{#if editData && displayData && templateCtx && client}
 	<PageController
 		bind:pan
 		bind:scale
 		bind:editing
 		{editData}
 		{displayData}
-		{socket}
 		{container}
 		session={data.session}
 		initialColor={data.color}
-		initialInfo={userInfo}
 		{templateCtx}
+		{client}
 	/>
 {/if}
 

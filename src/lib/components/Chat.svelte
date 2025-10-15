@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as InputGroup from '$lib/components/ui/input-group/index.js';
-	import type { ChatMessage, ClientSocket } from '$lib/types';
+	import type { ChatMessage } from '$lib/types';
 	import Send from '@lucide/svelte/icons/send';
 	import Smile from '@lucide/svelte/icons/smile';
 	import { type Picker } from 'emoji-picker-element';
@@ -12,6 +12,8 @@
 		type MarkdownOptions
 	} from '@magidoc/plugin-svelte-marked';
 
+	import type { PixelsClient } from '$lib/client.svelte';
+	import { emojiExtension } from '$lib/emoji';
 	import type { CustomEmoji } from 'emoji-picker-element/shared';
 	import { marked } from 'marked';
 	import MarkdownEmoji from './MarkdownEmoji.svelte';
@@ -21,10 +23,9 @@
 	import PopoverContent from './ui/popover/popover-content.svelte';
 	import PopoverTrigger from './ui/popover/popover-trigger.svelte';
 	import UserLazyPopover from './UserLazyPopover.svelte';
-	import { emojiExtension } from '$lib/emoji';
 
 	let messages: ChatMessage[] = $state([]);
-	let { socket, signedIn = false }: { socket: ClientSocket; signedIn?: boolean } = $props();
+	let { client, signedIn = false }: { client: PixelsClient; signedIn?: boolean } = $props();
 
 	let pickerContainer: HTMLElement | undefined = $state();
 	let emojiPicker: Picker;
@@ -32,15 +33,14 @@
 	const customEmoji: CustomEmoji[] = [];
 
 	onMount(async () => {
-		socket.on('chat', (data) => {
-			messages = messages.concat(data);
+		client.socket.on('chat', (data) => {
 			ScrollToBottom();
 		});
 
 		const emojiDB = new (await import('emoji-picker-element/database')).default({
 			customEmoji
 		});
-		
+
 		lexer = marked.use(emojiExtension(emojiDB)).Lexer.lexInline;
 
 		ScrollToBottom();
@@ -88,7 +88,7 @@
 		if (!currentMessage) {
 			return;
 		}
-		socket.emit('chat', currentMessage);
+		client.socket.emit('chat', currentMessage);
 		currentMessage = '';
 	}
 
@@ -138,13 +138,13 @@
 	<div class="w-full flex-1 overflow-x-hidden overflow-y-scroll p-2" bind:this={scrollable}>
 		{#if lexer}
 			<ul>
-				{#each messages as { timestamp, username, message }}
+				{#each client.chat as { timestamp, username, message }}
 					<li>
 						<span class="font-bold">
 							<span class="italic" title={new Date(timestamp).toISOString()}>
 								{time(timestamp)}
 							</span>
-							<UserLazyPopover {username} {socket} />
+							<UserLazyPopover {username} socket={client.socket} />
 						</span>
 
 						<MarkdownTokens {renderers} {options} tokens={lexer(message)} />
