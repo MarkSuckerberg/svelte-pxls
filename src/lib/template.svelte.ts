@@ -2,6 +2,14 @@ import { page } from '$app/state';
 import { toast } from 'svelte-sonner';
 import type { Dimensions } from './types';
 
+interface TemplateSave {
+	offset: Dimensions;
+	inputUrl: string;
+	resize: boolean;
+	resizeDimensions: Dimensions;
+	full: boolean;
+}
+
 export class TemplateData {
 	private readonly boardSize: Dimensions;
 	private readonly templateCtx: CanvasRenderingContext2D;
@@ -38,6 +46,37 @@ export class TemplateData {
 	constructor(templateContext: CanvasRenderingContext2D, boardSize: Dimensions) {
 		this.templateCtx = templateContext;
 		this.boardSize = boardSize;
+
+		const saveString = localStorage.getItem('template');
+		if (!saveString) {
+			return;
+		}
+
+		const save: TemplateSave = JSON.parse(saveString);
+
+		if (!save.inputUrl) {
+			return;
+		}
+		this.resize = save.resize;
+		this.resizeDimensions = save.resizeDimensions;
+		this.full = save.full;
+		this._offset = save.offset;
+		this.updateTemplate(save.inputUrl);
+	}
+
+	public localSave() {
+		if (!this.inputUrl) {
+			localStorage.removeItem('template');
+		}
+
+		const save: TemplateSave = {
+			offset: this._offset,
+			inputUrl: this.inputUrl,
+			resize: this.resize,
+			resizeDimensions: this.resizeDimensions,
+			full: this.full
+		};
+		localStorage.setItem('template', JSON.stringify(save));
 	}
 
 	public updateOffset(newOffset: Dimensions = this.input) {
@@ -60,11 +99,15 @@ export class TemplateData {
 			this._offset.width * 3,
 			this._offset.height * 3
 		);
+
+		this.localSave();
 	}
 
 	clearTemplate() {
 		this.templateData = undefined;
 		this.templateSize = { height: 0, width: 0 };
+
+		this.localSave();
 	}
 
 	async setTemplate(file: Blob, dataUrl = true) {
@@ -165,12 +208,14 @@ export class TemplateData {
 				this.inputUrl = reader.result.toString();
 			};
 		}
+
+		this.localSave();
 	}
 
 	async updateTemplate(newUrl: string = this.inputUrl) {
 		const url = URL.parse(newUrl, page.url.origin);
 
-		if (!url || !url.protocol.startsWith('http')) {
+		if (!url || (!url.protocol.startsWith('http') && url.protocol != 'data:')) {
 			toast.error('Invalid URL!');
 			this.clearTemplate();
 			return;

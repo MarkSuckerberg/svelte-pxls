@@ -77,7 +77,7 @@
 	<InputGroup>
 		<InputGroupInput bind:value={templateData.inputUrl} type="url" placeholder="Template URL" />
 		<InputGroupAddon align="inline-end">
-			<InputGroupButton onclick={() => templateData.updateTemplate()} variant="default">
+			<InputGroupButton onclick={() => templateData.updateTemplate()} variant="default" disabled={!templateData.inputUrl}>
 				Set Template
 			</InputGroupButton>
 		</InputGroupAddon>
@@ -186,7 +186,14 @@
 		<InputGroupAddon>
 			<InputGroupText>Template Opacity</InputGroupText>
 		</InputGroupAddon>
-		<InputGroupInput type="range" bind:value={templateData.opacity} min="0" max="100" />
+		<InputGroupInput
+			type="range"
+			onchange={(event) => {
+				templateData.opacity = Number(event.currentTarget.value);
+			}}
+			min="0"
+			max="100"
+		/>
 	</InputGroup>
 
 	<Separator />
