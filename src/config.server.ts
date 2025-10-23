@@ -28,6 +28,10 @@ interface Config {
 		tumblr?: ProviderCredentials;
 		twitch?: ProviderCredentials;
 	};
+	webhooks?: {
+		chat?: string[];
+		admin?: string[];
+	};
 }
 
 const example = fs.readFileSync('./data/config.example.yml', 'utf8');

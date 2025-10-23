@@ -34,3 +34,9 @@ boardFile: data/board.dat
 motd: Welcome to the server!
 # Markdown-parsed info viewable on the info tab
 info: Placeholder info
+# Various webhooks that are posted to for various actions, completely optional
+webhooks:
+  chat:
+    # - https://webhook.com/here
+  admin:
+    # - https://webhook.com/here

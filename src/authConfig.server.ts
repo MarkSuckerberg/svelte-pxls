@@ -9,6 +9,7 @@ import { and, eq, gte } from 'drizzle-orm';
 import { config } from './config.server.js';
 import { accounts, bans, db, users } from './lib/server/db/index.js';
 import { Tumblr, type TumblrProfile } from './lib/tumblrAuth.js';
+import { sendMessage } from './lib/webhook.js';
 
 const providers: Provider[] = [];
 
@@ -67,6 +68,18 @@ export const authConfig = {
 	session: {
 		strategy: 'jwt'
 	},
+	events: {
+		createUser(message) {
+			config.webhooks?.admin?.forEach((webhook) =>
+				sendMessage(webhook, {
+					title: 'New User Created',
+					timestamp: new Date(Date.now()),
+					user: { name: message.user.name || 'Error', image: message.user.image },
+					message: ''
+				})
+			);
+		}
+	},
 	callbacks: {
 		async signIn({ user, profile }) {
 			if (!user.id) {
@@ -88,7 +101,7 @@ export const authConfig = {
 						.update(users)
 						.set({ image: newImage })
 						.where(eq(users.id, user.id as UUID));
-					user.image = newImage
+					user.image = newImage;
 				}
 			}
 

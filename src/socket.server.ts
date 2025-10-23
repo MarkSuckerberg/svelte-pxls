@@ -32,6 +32,7 @@ import {
 } from './lib/server/db/index.js';
 import { User } from './lib/server/user.server.js';
 import { dbUser, GetUserInfo, GetUserInfoUsername } from './lib/userinfo.js';
+import { sendMessage } from './lib/webhook.js';
 
 export class PixelSocketServer {
 	public static async fromFile(
@@ -298,6 +299,31 @@ export class PixelSocketServer {
 			});
 
 			socket.on('chat', async (message) => {
+				const details = {
+					username: 'Pixels',
+
+					embeds: [
+						{
+							timestamp: new Date(Date.now()).toISOString(),
+							title: 'New chat message',
+							author: {
+								name: data.user.username,
+								icon_url: data.user.Avatar
+							},
+							description: message
+						}
+					]
+				};
+
+				config.webhooks?.chat?.forEach((webhook) => {
+					sendMessage(webhook, {
+						title: 'New Chat Message',
+						timestamp: new Date(Date.now()),
+						user: { name: data.user.username, image: data.user.Avatar },
+						message
+					});
+				});
+
 				await db.insert(chat).values({ message, userId: data.user.id });
 
 				this.io.emit('chat', [
@@ -337,6 +363,15 @@ export class PixelSocketServer {
 					ack();
 					return;
 				}
+
+				config.webhooks?.admin?.forEach((webhook) =>
+					sendMessage(webhook, {
+						title: 'New ban created',
+						timestamp: new Date(Date.now()),
+						message: `User ID ${ban.userId} / IP ${ban.ip} banned.`,
+						user: { name: data.user.username, image: data.user.Avatar }
+					})
+				);
 				ack(banId);
 			});
 		});
