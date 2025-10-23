@@ -84,9 +84,11 @@ export const authConfig = {
 				}
 
 				if (newImage) {
-					db.update(users)
+					await db
+						.update(users)
 						.set({ image: newImage })
 						.where(eq(users.id, user.id as UUID));
+					user.image = newImage
 				}
 			}
 
