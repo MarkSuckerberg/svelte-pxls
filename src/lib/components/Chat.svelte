@@ -1,6 +1,5 @@
 <script lang="ts">
 	import * as InputGroup from '$lib/components/ui/input-group/index.js';
-	import type { ChatMessage } from '$lib/types';
 	import Send from '@lucide/svelte/icons/send';
 	import Smile from '@lucide/svelte/icons/smile';
 	import { type Picker } from 'emoji-picker-element';
@@ -138,7 +137,7 @@
 		{#if lexer}
 			<ul>
 				{#each client.chat as { timestamp, username, message }}
-					<li>
+					<li class="prose dark:prose-invert">
 						<span class="font-bold">
 							<span class="italic" title={new Date(timestamp).toISOString()}>
 								{time(timestamp)}
