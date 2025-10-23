@@ -25,6 +25,8 @@ export class PixelsClient {
 		);
 
 		if (this.info) {
+			this.updateTitle();
+
 			setTimeout(
 				() => {
 					this.nextPixel = Math.floor(20 - (Date.now() - this.info.lastTicked) / 1000);
@@ -46,6 +48,7 @@ export class PixelsClient {
 					setInterval(() => {
 						this.info.pixels = Math.min(this.info.maxPixels, this.info.pixels + 1);
 						this.info.lastTicked = Date.now();
+						this.updateTitle();
 					}, 20 * 1000);
 				},
 				20 * 1000 - (Date.now() - this.info.lastTicked)
@@ -57,6 +60,7 @@ export class PixelsClient {
 
 		this.socket.on('userInfo', (info) => {
 			this.info = info;
+			this.updateTitle();
 		});
 
 		this.socket.on('chat', (messages) => {
@@ -98,5 +102,13 @@ export class PixelsClient {
 		});
 
 		return new PixelsClient(socket, await userData, await initialChat, await initialUsers);
+	}
+
+	public updateTitle() {
+		const prepend =
+			this.info.pixels >= this.info.maxPixels
+				? 'Full'
+				: `${this.info.pixels}/${this.info.maxPixels}`;
+		document.title = `[${prepend}] | Steller's Pixels`;
 	}
 }

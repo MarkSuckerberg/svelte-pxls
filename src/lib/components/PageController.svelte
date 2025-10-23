@@ -8,15 +8,11 @@
 	import SignIn from '$lib/components/SignIn.svelte';
 	import ViewHud from '$lib/components/ViewHUD.svelte';
 
+	import Pop from '$lib/pop.ogg';
+
 	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
 	import { TemplateData } from '$lib/template.svelte';
-	import {
-		DEFAULT_COLOR_INDEX,
-		type ClientSocket,
-		type Coords,
-		type Pixel,
-		type PixelSession
-	} from '$lib/types';
+	import { DEFAULT_COLOR_INDEX, type Coords, type Pixel, type PixelSession } from '$lib/types';
 
 	import type { PixelsClient } from '$lib/client.svelte';
 	import type { GestureEvent } from '@interactjs/actions/gesture/plugin';
@@ -50,6 +46,8 @@
 		templateCtx: CanvasRenderingContext2D;
 		client: PixelsClient;
 	} = $props();
+
+	const pop = new Audio(Pop);
 
 	let selectedColorIdx = $state(initialColor || DEFAULT_COLOR_INDEX);
 
@@ -188,14 +186,19 @@
 			return;
 		}
 
-		if (remove && editData.getPixel({ x, y }) === color) {
-			editData.deletePixel({ x, y });
+		if (editData.getPixel({ x, y }) === color) {
+			if (remove) {
+				editData.deletePixel({ x, y });
+			}
+
 			return;
 		}
 
 		if (editData.edits.size >= client.info.pixels) {
 			return;
 		}
+
+		pop.play();
 
 		editData.setPixel({ x, y, color });
 		setEditing(true);
@@ -269,7 +272,9 @@
 	function onDoubleTap(event: MouseEvent) {
 		const { x, y } = editData.fromScreenEvent(event);
 
-		userPlace(x, y, false);
+		if (!editing) {
+			userPlace(x, y, false);
+		}
 
 		event.preventDefault();
 	}
