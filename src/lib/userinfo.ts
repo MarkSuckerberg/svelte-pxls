@@ -14,33 +14,31 @@ export interface LimitedUserInfo {
 	placed: number;
 	id: UUID;
 	mod: boolean;
+	title: string | null;
 }
 
+export const dbUser = {
+	name: users.name,
+	placed: users.placed,
+	id: users.id,
+	title: users.title,
+	avatar: users.image,
+	mod: users.mod
+};
+
 const dbUserInfoQuery = db
-	.select({
-		name: users.name,
-		avatar: users.image,
-		placed: users.placed,
-		id: users.id,
-		mod: users.mod
-	})
+	.select(dbUser)
 	.from(users)
 	.where(eq(users.id, sql.placeholder('id')))
 	.limit(1)
-	.prepare('userinfo');
+	.prepare('userinfo_id');
 
 const dbUserInfoQueryUsername = db
-	.select({
-		name: users.name,
-		avatar: users.image,
-		placed: users.placed,
-		id: users.id,
-		mod: users.mod
-	})
+	.select(dbUser)
 	.from(users)
 	.where(eq(users.name, sql.placeholder('username')))
 	.limit(1)
-	.prepare('userinfo');
+	.prepare('userinfo_username');
 
 export async function GetUserInfo(id: string) {
 	const info: LimitedUserInfo | undefined = (await dbUserInfoQuery.execute({ id })).at(0);

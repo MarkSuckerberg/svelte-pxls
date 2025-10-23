@@ -50,6 +50,11 @@ export interface PixelInfo {
 	time: number;
 }
 
+export interface UserSettings {
+	imageUrl: string | null;
+	title: string | null;
+}
+
 export type ClientToServerEvents = {
 	place: (pixels: Pixel[], ack: (pixels: Pixel[]) => void) => void;
 	pixelInfo: (location: Coords, ack: (pixel: PixelInfo | null) => void) => void;
@@ -57,6 +62,7 @@ export type ClientToServerEvents = {
 	chat: (message: string) => void;
 	idInfo: (id: string, ack: (info: LimitedUserInfo | null) => void) => void;
 	usernameInfo: (username: string, ack: (info: LimitedUserInfo | null) => void) => void;
+	settings: (newSettings: UserSettings, ack: () => void) => void;
 };
 
 export type InterServerEvents = never;

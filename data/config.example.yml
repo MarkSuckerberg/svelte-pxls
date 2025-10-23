@@ -32,3 +32,5 @@ db:
 boardFile: data/board.dat
 # Chat message sent to all users on joining
 motd: Welcome to the server!
+# Markdown-parsed info viewable on the info tab
+info: Placeholder info

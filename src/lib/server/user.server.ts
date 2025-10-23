@@ -1,5 +1,7 @@
+import type { ClientToServerEvents, ServerToClientEvents } from '$lib/types.js';
 import type { UUID } from 'crypto';
 import { eq, sql } from 'drizzle-orm';
+import type { Socket } from 'socket.io';
 import type { LimitedUserInfo, UserInfo } from '../userinfo.js';
 import { db, users } from './db/index.js';
 
@@ -14,7 +16,15 @@ export class User {
 		return count ? count > 0 : false;
 	}
 
+	private static idMap: Map<UUID, User> = new Map();
+
 	public static async byId(id: UUID) {
+		let user = this.idMap.get(id);
+
+		if (user) {
+			return user;
+		}
+
 		const data = (await db.select().from(users).where(eq(users.id, id)).limit(1))[0];
 
 		if (!data) {
@@ -28,6 +38,7 @@ export class User {
 			data.lastTicked,
 			data.name,
 			data.image,
+			data.title,
 			data.mod
 		);
 	}
@@ -39,6 +50,7 @@ export class User {
 	private _placed: number = 0;
 	private _lastTicked;
 	private _avatar: string | null;
+	private _title: string | null;
 
 	public constructor(
 		id: UUID,
@@ -47,6 +59,7 @@ export class User {
 		lastTicked: Date,
 		username: string,
 		avatar: string | null,
+		title: string | null,
 		mod = false
 	) {
 		this.id = id;
@@ -55,6 +68,7 @@ export class User {
 		this._lastTicked = lastTicked;
 		this.username = username;
 		this._avatar = avatar;
+		this._title = title;
 		this.mod = mod;
 	}
 
@@ -105,6 +119,50 @@ export class User {
 		this._avatar = newImage;
 	}
 
+	public get Title() {
+		return this._title;
+	}
+
+	public set Title(newTitle: string | null) {
+		this._title = newTitle;
+	}
+
+	public update({
+		pixels,
+		placed,
+		avatar,
+		title,
+		lastTicked
+	}: {
+		pixels?: number;
+		placed?: number;
+		avatar?: string;
+		title?: string;
+		lastTicked?: Date;
+	}) {
+		if (lastTicked) {
+			this._lastTicked = lastTicked;
+		}
+
+		if (pixels) {
+			this.Pixels = pixels;
+		}
+
+		if (placed) {
+			this._placed = placed;
+		}
+
+		if (avatar) {
+			this._avatar = avatar;
+		}
+
+		if (title) {
+			this._title = title;
+		}
+
+		return this.sync();
+	}
+
 	public info(): UserInfo {
 		return {
 			name: this.username,
@@ -114,6 +172,7 @@ export class User {
 			maxPixels: this.MaxPixels,
 			lastTicked: this.LastTicked.getTime(),
 			placed: this.Placed,
+			title: this._title,
 			mod: this.mod
 		};
 	}
@@ -124,6 +183,7 @@ export class User {
 			avatar: this._avatar,
 			placed: this._placed,
 			id: this.id,
+			title: this._title,
 			mod: this.mod
 		};
 	}
@@ -135,7 +195,8 @@ export class User {
 				pixels: this._pixels,
 				placed: this._placed,
 				lastTicked: this._lastTicked,
-				image: this._avatar
+				image: this._avatar,
+				title: this._title
 			})
 			.where(eq(users.id, this.id));
 	}

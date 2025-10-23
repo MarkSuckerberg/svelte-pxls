@@ -100,16 +100,17 @@ await db.transaction(async (tx) => {
 		})
 		.from(legacySchema.chat);
 
+	await tx.delete(schema.chat);
 	for (let messageID = 0; messageID < messages.length; messageID++) {
-		const message = messages[messageID];
+		const chatMsg = messages[messageID];
 
 		const msg = {
-			...message,
-			userId: message.userId ? uuidFromInt(message.userId) : undefined,
-			timestamp: new Date(message.timestamp * 1000)
+			message: chatMsg.message,
+			userId: chatMsg.userId ? uuidFromInt(chatMsg.userId) : undefined,
+			timestamp: new Date(chatMsg.timestamp * 1000)
 		};
 
-		await tx.insert(schema.chat).values(msg).onConflictDoNothing();
+		await tx.insert(schema.chat).values(msg);
 	}
 
 	console.log(`Migrated ${messages.length} chat messages.`);

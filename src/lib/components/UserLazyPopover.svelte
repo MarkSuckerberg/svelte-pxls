@@ -1,15 +1,26 @@
 <script lang="ts">
 	import type { ClientSocket } from '$lib/types';
+	import type { Snippet } from 'svelte';
 	import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 	import Spinner from './ui/spinner/spinner.svelte';
 	import UserCard from './UserCard.svelte';
 
-	let { username, socket }: { username: string; socket: ClientSocket } = $props();
+	const {
+		username,
+		socket,
+		children
+	}: { username: string; socket: ClientSocket; children?: Snippet } = $props();
 </script>
 
 <Popover>
-	<PopoverTrigger class="underline">
-		{username}
+	<PopoverTrigger>
+		{#if children}
+			{@render children?.()}
+		{:else}
+			<span class="underline">
+				{username}
+			</span>
+		{/if}
 	</PopoverTrigger>
 	<PopoverContent class="flex justify-center gap-2">
 		{#await socket.emitWithAck('usernameInfo', username)}

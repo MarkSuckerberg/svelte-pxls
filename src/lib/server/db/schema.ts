@@ -34,6 +34,7 @@ export const users = pgTable('user', {
 	email: text('email').unique(),
 	emailVerified: timestamp('emailVerified', { mode: 'date' }),
 	image: text('image'),
+	title: text('title'),
 	registered: timestamp('registered').notNull().defaultNow(),
 	lastTicked: timestamp('lastTicked').notNull().defaultNow(),
 	pixels: integer('pixels').notNull().default(100),

@@ -31,7 +31,7 @@ import {
 	users
 } from './lib/server/db/index.js';
 import { User } from './lib/server/user.server.js';
-import { GetUserInfo, GetUserInfoUsername } from './lib/userinfo.js';
+import { dbUser, GetUserInfo, GetUserInfoUsername } from './lib/userinfo.js';
 
 export class PixelSocketServer {
 	public static async fromFile(
@@ -184,13 +184,7 @@ export class PixelSocketServer {
 				const info = (
 					await db
 						.select({
-							user: {
-								name: users.name,
-								mod: users.mod,
-								placed: users.placed,
-								id: users.id,
-								avatar: users.image
-							},
+							user: dbUser,
 							time: pixelPlacements.time
 						})
 						.from(pixelPlacements)
@@ -254,6 +248,7 @@ export class PixelSocketServer {
 					lastTicked: Date.now(),
 					placed: 0,
 					avatar: null,
+					title: null,
 					mod: false
 				});
 
@@ -312,6 +307,18 @@ export class PixelSocketServer {
 						timestamp: Date.now()
 					}
 				]);
+			});
+
+			socket.on('settings', async (settings, ack) => {
+				data.user.Avatar = settings.imageUrl;
+				data.user.Title = settings.title;
+				await data.user.sync();
+
+				this.sessions.get(data.user.id)?.forEach((socket) => {
+					socket.emit('userInfo', data.user.info());
+				});
+
+				ack();
 			});
 
 			if (!data.user.mod) {

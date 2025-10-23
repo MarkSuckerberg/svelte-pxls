@@ -27,6 +27,11 @@
 			<Medal class={`${countClass} inline`} />
 		{/if}
 	</h3>
+
+	{#if info.title}
+		<p class="text-sm text-gray-500 italic">{info.title}</p>
+	{/if}
+
 	<p class={countClass}>
 		{info.placed.toLocaleString()} pixels placed
 	</p>

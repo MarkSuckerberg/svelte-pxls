@@ -15,6 +15,7 @@ interface Config {
 	port: number;
 	authSecret: string;
 	motd: string;
+	info: string;
 	db: {
 		url: string;
 	};

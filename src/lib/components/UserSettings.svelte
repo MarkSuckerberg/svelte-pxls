@@ -1,5 +1,6 @@
 <script lang="ts">
-	import type { UserInfo } from '$lib/userinfo';
+	import type { PixelsClient } from '$lib/client.svelte';
+	import { toast } from 'svelte-sonner';
 	import SignIn from './SignIn.svelte';
 	import Button, { buttonVariants } from './ui/button/button.svelte';
 	import InputGroupAddon from './ui/input-group/input-group-addon.svelte';
@@ -8,29 +9,60 @@
 	import InputGroup from './ui/input-group/input-group.svelte';
 	import Separator from './ui/separator/separator.svelte';
 
-	let { userInfo }: { userInfo?: UserInfo } = $props();
+	let { client }: { client: PixelsClient } = $props();
+
+	let newAvatar = $state(client.info.avatar || '');
+	let newTitle = $state(client.info.title || '');
+
+	function updateProfile() {
+		if (newAvatar && !URL.canParse(newAvatar)) {
+			toast.error('Invalid avatar URL!');
+		}
+
+		const promise = client.socket.timeout(1000).emitWithAck('settings', {
+			imageUrl: newAvatar || null,
+			title: newTitle || null
+		});
+
+		toast.promise(promise, {
+			loading: 'Updating settings...',
+			success: () => 'Settings updated.',
+			error: () => 'Error updating settings.'
+		});
+	}
 </script>
 
 <div class="flex flex-col gap-2 p-2">
 	<h2 class="text-xl font-bold">User Settings</h2>
 
-	<p>Somehow, there's nothing here yet.</p>
-
-	{#if userInfo}
+	{#if client}
 		<Separator />
 
-		<h3 class="font-bold">Account: {userInfo.name}</h3>
+		<h3 class="font-bold">Account: {client.info.name}</h3>
 
 		<InputGroup>
 			<InputGroupAddon>
-				<InputGroupText>Avatar URL</InputGroupText>
+				<InputGroupText>Avatar:</InputGroupText>
 			</InputGroupAddon>
-			<InputGroupInput value={userInfo.avatar} disabled />
+			<InputGroupInput type="url" bind:value={newAvatar} />
 		</InputGroup>
+
+		<InputGroup>
+			<InputGroupAddon>
+				<InputGroupText>Title:</InputGroupText>
+			</InputGroupAddon>
+			<InputGroupInput bind:value={newTitle} />
+		</InputGroup>
+
+		<Button onclick={() => updateProfile()}>Update Profile</Button>
+
+		<Separator />
 
 		<SignIn class={buttonVariants({ variant: 'default' }) + ' w-full'}>
 			Link another account
 		</SignIn>
+
+		<Separator />
 
 		<form action="/signout" method="POST">
 			<Button variant="destructive" type="submit" class="w-full">Sign out</Button>

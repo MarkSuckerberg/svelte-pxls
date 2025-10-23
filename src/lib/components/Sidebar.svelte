@@ -1,20 +1,22 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar/index';
 
+	import InfoIcon from '@lucide/svelte/icons/info';
 	import MessageSquareMore from '@lucide/svelte/icons/message-square-more';
 	import Settings from '@lucide/svelte/icons/settings';
+	import ShieldUser from '@lucide/svelte/icons/shield-user';
 	import TriangleDashed from '@lucide/svelte/icons/triangle-dashed';
 
 	import type { PixelsClient } from '$lib/client.svelte';
 	import type { PixelEditCanvas } from '$lib/pixelCanvas.svelte';
 	import type { TemplateData } from '$lib/template.svelte';
 	import type { PixelSession } from '$lib/types';
-	import ShieldUser from '@lucide/svelte/icons/shield-user';
 	import Chat from './Chat.svelte';
 	import ModMenu from './ModMenu.svelte';
 	import Template from './Template.svelte';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 	import UserSettings from './UserSettings.svelte';
+	import ServerInfo from './ServerInfo.svelte';
 
 	let {
 		templateData,
@@ -42,6 +44,7 @@
 				<TabsTrigger value="chat"><MessageSquareMore /> Chat</TabsTrigger>
 				<TabsTrigger value="template"><TriangleDashed /> Template</TabsTrigger>
 				<TabsTrigger value="settings"><Settings /> Settings</TabsTrigger>
+				<TabsTrigger value="info"><InfoIcon /> Info</TabsTrigger>
 				{#if client.info.mod}
 					<TabsTrigger value="mod"><ShieldUser /> Mod Tools</TabsTrigger>
 				{/if}
@@ -58,7 +61,10 @@
 				/>
 			</TabsContent>
 			<TabsContent value="settings">
-				<UserSettings userInfo={client.info} />
+				<UserSettings {client} />
+			</TabsContent>
+			<TabsContent value="info">
+				<ServerInfo />
 			</TabsContent>
 			{#if client.info.mod}
 				<TabsContent value="mod">

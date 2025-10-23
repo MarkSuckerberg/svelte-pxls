@@ -24,7 +24,6 @@
 	import PopoverTrigger from './ui/popover/popover-trigger.svelte';
 	import UserLazyPopover from './UserLazyPopover.svelte';
 
-	let messages: ChatMessage[] = $state([]);
 	let { client, signedIn = false }: { client: PixelsClient; signedIn?: boolean } = $props();
 
 	let pickerContainer: HTMLElement | undefined = $state();
