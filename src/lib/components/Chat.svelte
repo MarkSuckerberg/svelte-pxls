@@ -164,8 +164,8 @@
 					onkeydown={(event) => {
 						if (event.key === 'Enter' && !event.shiftKey) {
 							sendMessage();
-							event.stopPropagation();
 						}
+						event.stopPropagation();
 					}}
 				/>
 				<InputGroup.Addon align="inline-end">
