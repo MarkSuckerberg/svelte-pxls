@@ -20,6 +20,7 @@
 	import InputGroupInput from './ui/input-group/input-group-input.svelte';
 	import InputGroupText from './ui/input-group/input-group-text.svelte';
 	import InputGroup from './ui/input-group/input-group.svelte';
+	import Label from './ui/label/label.svelte';
 	import Separator from './ui/separator/separator.svelte';
 
 	let files: FileList | undefined = $state();
@@ -77,7 +78,11 @@
 	<InputGroup>
 		<InputGroupInput bind:value={templateData.inputUrl} type="url" placeholder="Template URL" />
 		<InputGroupAddon align="inline-end">
-			<InputGroupButton onclick={() => templateData.updateTemplate()} variant="default" disabled={!templateData.inputUrl}>
+			<InputGroupButton
+				onclick={() => templateData.updateTemplate()}
+				variant="default"
+				disabled={!templateData.inputUrl}
+			>
 				Set Template
 			</InputGroupButton>
 		</InputGroupAddon>
@@ -137,23 +142,41 @@
 
 	<Separator />
 
-	<InputGroup>
-		<InputGroupAddon>
-			<InputGroupText>Flip Y</InputGroupText>
+	<div class="flex justify-between gap-2 px-2">
+		<Label>
+			Flip X
+			<Checkbox
+				bind:checked={templateData.flipX}
+				onCheckedChange={() => templateData.updateTemplate()}
+			/>
+		</Label>
+
+		<Label>
+			Flip Y
 			<Checkbox
 				bind:checked={templateData.flipY}
 				onCheckedChange={() => templateData.updateTemplate()}
 			/>
-		</InputGroupAddon>
+		</Label>
 
-		<InputGroupAddon>
-			<InputGroupText>Show Full</InputGroupText>
+		<Label>
+			Show full
 			<Checkbox
 				bind:checked={templateData.full}
 				onCheckedChange={() => templateData.updateTemplate()}
 			/>
-		</InputGroupAddon>
-	</InputGroup>
+		</Label>
+
+		<Label>
+			Use Palette
+			<Checkbox
+				bind:checked={templateData.convert}
+				onCheckedChange={() => templateData.updateTemplate()}
+			/>
+		</Label>
+	</div>
+
+	<Separator />
 
 	<InputGroup>
 		<InputGroupAddon>
@@ -166,6 +189,7 @@
 
 		<InputGroupInput
 			type="number"
+			title="X resize width"
 			min="0"
 			max={boardSize.width}
 			bind:value={templateData.resizeDimensions.width}
@@ -174,6 +198,7 @@
 		/>
 		<InputGroupInput
 			type="number"
+			title="Y resize width"
 			min="0"
 			max={boardSize.height}
 			bind:value={templateData.resizeDimensions.height}
@@ -188,6 +213,7 @@
 		</InputGroupAddon>
 		<InputGroupInput
 			type="range"
+			value={templateData.opacity * 100}
 			onchange={(event) => {
 				templateData.opacity = Number(event.currentTarget.value);
 			}}

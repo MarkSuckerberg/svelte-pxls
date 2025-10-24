@@ -1,4 +1,5 @@
 import { io } from 'socket.io-client';
+import { doNotify } from './notify';
 import type { ChatMessage, ClientSocket } from './types';
 import type { UserInfo } from './userinfo';
 
@@ -46,6 +47,12 @@ export class PixelsClient {
 					this.info.lastTicked = Date.now();
 
 					setInterval(() => {
+						if (this.info.pixels === this.info.maxPixels - 1) {
+							doNotify(
+								'Pixels Full!',
+								`Your ${this.info.pixels} pixels are ready to place!`
+							);
+						}
 						this.info.pixels = Math.min(this.info.maxPixels, this.info.pixels + 1);
 						this.info.lastTicked = Date.now();
 						this.updateTitle();

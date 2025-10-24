@@ -30,15 +30,28 @@
 			error: () => 'Error updating settings.'
 		});
 	}
+
+	let notifications = $state(Notification?.permission);
 </script>
 
 <div class="flex flex-col gap-2 p-2">
 	<h2 class="text-xl font-bold">User Settings</h2>
+	<Separator />
 
 	{#if client}
+		<Button
+			onclick={() =>
+				Notification.requestPermission().then((status) => {
+					notifications = status;
+				})}
+			disabled={!(notifications !== 'granted')}
+		>
+			{notifications === 'granted' ? 'Notifications allowed' : 'Allow notifications'}
+		</Button>
+
 		<Separator />
 
-		<h3 class="font-bold">Account: {client.info.name}</h3>
+		<h3 class="font-bold">Account settings: {client.info.name}</h3>
 
 		<InputGroup>
 			<InputGroupAddon>

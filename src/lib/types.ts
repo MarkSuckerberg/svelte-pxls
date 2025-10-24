@@ -85,19 +85,18 @@ export type Pixel = {
 	color: number;
 };
 
-export function colorToRGB(index: number) {
-	const colorValue = colors[index];
+export const colors = colorFile.map(({ name, value }) => {
+	return Number.parseInt(value, 16);
+});
+
+export const colorsRGB = colors.map((colorValue) => {
 	const red = (colorValue >> 24) & 0xff;
 	const green = (colorValue >> 16) & 0xff;
 	const blue = (colorValue >> 8) & 0xff;
 	const alpha = (colorValue >> 0) & 0xff;
 
 	return { red, green, blue, alpha };
-}
-
-export const colors = colorFile.map(({ name, value }) => {
-	return Number.parseInt(value, 16);
-});
+})
 
 export const colorNames = colorFile.map(({ name, value }) => name);
 

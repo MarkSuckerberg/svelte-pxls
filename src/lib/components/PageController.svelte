@@ -8,7 +8,7 @@
 	import SignIn from '$lib/components/SignIn.svelte';
 	import ViewHud from '$lib/components/ViewHUD.svelte';
 
-	import Pop from '$lib/pop.ogg';
+	import Pop from '$lib/assets/pop.ogg';
 
 	import { PixelCanvas, PixelEditCanvas } from '$lib/pixelCanvas.svelte';
 	import { TemplateData } from '$lib/template.svelte';

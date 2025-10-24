@@ -1,6 +1,6 @@
 import { ArrayGrid } from './arrayGrid';
 import { EditSet } from './EditSet.svelte';
-import { colorsBackwards, colorToRGB, type Coords, type Dimensions, type Pixel } from './types';
+import { colorsBackwards, colorsRGB, type Coords, type Dimensions, type Pixel } from './types';
 
 export class PixelCanvas {
 	public readonly canvas: HTMLCanvasElement;
@@ -41,7 +41,7 @@ export class PixelCanvas {
 
 			this.setData(array);
 		} else if (backgroundFill) {
-			const { red, green, blue, alpha } = colorToRGB(backgroundFill);
+			const { red, green, blue, alpha } = colorsRGB[backgroundFill];
 			this.context.fillStyle = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 			this.context.fillRect(0, 0, width, height);
 		}
@@ -59,7 +59,7 @@ export class PixelCanvas {
 
 	public setPixel(pixel: Pixel) {
 		const { x, y, color } = pixel;
-		const { red, green, blue, alpha } = colorToRGB(color);
+		const { red, green, blue, alpha } = colorsRGB[color];
 
 		this.array?.set(pixel);
 

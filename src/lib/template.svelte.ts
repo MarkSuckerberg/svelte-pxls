@@ -1,6 +1,6 @@
 import { page } from '$app/state';
 import { toast } from 'svelte-sonner';
-import type { Dimensions } from './types';
+import { colorsRGB, type Dimensions } from './types';
 
 interface TemplateSave {
 	offset: Dimensions;
@@ -8,6 +8,7 @@ interface TemplateSave {
 	resize: boolean;
 	resizeDimensions: Dimensions;
 	full: boolean;
+	convert: boolean;
 }
 
 export class TemplateData {
@@ -22,10 +23,13 @@ export class TemplateData {
 	public inputUrl: string = $state('');
 
 	public flipY: boolean = $state(false);
+	public flipX: boolean = $state(false);
+
 	public resize: boolean = $state(false);
 	public resizeDimensions: Dimensions = $state({ width: 50, height: 50 });
 
 	public full: boolean = $state(false);
+	public convert: boolean = $state(true);
 
 	public get offset(): Dimensions {
 		return this._offset;
@@ -60,6 +64,7 @@ export class TemplateData {
 		this.resize = save.resize;
 		this.resizeDimensions = save.resizeDimensions;
 		this.full = save.full;
+		this.convert = save.convert;
 		this._offset = save.offset;
 		this.updateTemplate(save.inputUrl);
 	}
@@ -74,7 +79,8 @@ export class TemplateData {
 			inputUrl: this.inputUrl,
 			resize: this.resize,
 			resizeDimensions: this.resizeDimensions,
-			full: this.full
+			full: this.full,
+			convert: this.convert
 		};
 		localStorage.setItem('template', JSON.stringify(save));
 	}
@@ -167,18 +173,26 @@ export class TemplateData {
 					continue;
 				}
 
-				this.templateCtx.fillStyle = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+				if (this.convert) {
+					const nearest = this.getNearestPaletteColor({ red, green, blue });
+
+					this.templateCtx.fillStyle = `rgb(${nearest.red}, ${nearest.green}, ${nearest.blue})`;
+				} else {
+					this.templateCtx.fillStyle = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+				}
+
+				const realX = this.flipX ? bitmap.width - x : x;
 
 				if (this.full) {
 					this.templateCtx.fillRect(
-						(x + this._offset.width) * 3,
+						(realX + this._offset.width) * 3,
 						(y + this._offset.height) * 3,
 						3,
 						3
 					);
 				} else {
 					this.templateCtx.fillRect(
-						(x + this._offset.width) * 3 + 1,
+						(realX + this._offset.width) * 3 + 1,
 						(y + this._offset.height) * 3 + 1,
 						1,
 						1
@@ -270,5 +284,31 @@ export class TemplateData {
 			toast.error(`${error}`);
 			return;
 		}
+	}
+
+	getNearestPaletteColor({
+		red: r1,
+		green: g1,
+		blue: b1
+	}: {
+		red: number;
+		green: number;
+		blue: number;
+	}) {
+		let smallest = Number.MAX_VALUE;
+		let index = -1;
+
+		colorsRGB.forEach(({ red: r2, green: g2, blue: b2 }, i) => {
+			const diff = Math.abs(
+				2 * Math.pow(r1 - r2, 2) + 4 * Math.pow(g1 - g2, 2) + 3 * Math.pow(b1 - b2, 2)
+			);
+
+			if (diff < smallest) {
+				smallest = diff;
+				index = i;
+			}
+		});
+
+		return colorsRGB[index];
 	}
 }
