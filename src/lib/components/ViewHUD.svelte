@@ -86,17 +86,17 @@
 </script>
 
 <div
-	class="pointer-events-none absolute bottom-0 left-1/8 flex w-3/4 flex-col items-center justify-center *:pointer-events-auto"
+	class="pointer-events-none absolute bottom-0 flex w-full flex-col items-center justify-center *:pointer-events-auto md:left-1/8 md:w-3/4"
 	transition:slide
 >
-	<Button class="h-20 w-4xl bg-chart-2" variant="secondary" onclick={onDrawButton}>
+	<Button class="h-20 w-full bg-chart-2" variant="secondary" onclick={onDrawButton}>
 		<Brush />
 		<span>Draw</span>
 		<span>-</span>
 		<PixelCount userInfo={client.info} nextPixel={client.nextPixel} showRing />
 	</Button>
 	{#if selectedPixel}
-		<Card class="w-3/4 text-center">
+		<Card class="w-full text-center">
 			<CardContent>
 				<Button
 					class="float-right m-1 h-12 w-12 flex-1 p-0"

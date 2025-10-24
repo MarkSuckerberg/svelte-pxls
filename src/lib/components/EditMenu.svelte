@@ -31,7 +31,7 @@
 </script>
 
 <div transition:slide class="fixed bottom-0 left-0 z-2 w-full rounded-b-none">
-	<Card class="w-full rounded-b-none">
+	<Card class="w-full gap-1 rounded-b-none">
 		<CardHeader class="flex">
 			<Button
 				class="h-12 flex-1 justify-end"
@@ -61,14 +61,13 @@
 				<Exit />
 			</Button>
 		</CardHeader>
-		<CardContent>
-			<div class="flex"></div>
+		<CardContent class="px-0 sm:px-2 md:px-8">
 			<div class="btn-group flex w-full flex-wrap justify-center">
 				{#each colors as color, index (color)}
 					<button
 						onclick={() => (selectedColorIdx = index)}
 						style:background-color={`#${color.toString(16).padStart(8, '0')}`}
-						class="m-0 btn h-10 w-10 p-0 outline-1 disabled:opacity-100 disabled:outline-4 disabled:outline-primary-contrast-700 sm:m-0.5 sm:h-12 sm:w-12"
+						class="m-0 btn h-6 w-6 p-0 outline-1 disabled:opacity-100 disabled:outline-4 disabled:outline-primary-contrast-700 md:m-0.5 md:h-12 md:w-12"
 						aria-label={colorNames[index]}
 						disabled={index === selectedColorIdx}
 						title={colorNames[index]}

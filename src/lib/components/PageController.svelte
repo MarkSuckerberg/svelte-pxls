@@ -86,6 +86,7 @@
 			onend: () => updateLocation()
 		})
 		.gesturable({
+			inertia: true,
 			onmove: function (event: GestureEvent & SignalArgs['interactions:move']) {
 				scale *= 1 + event.ds;
 				handleMove(event);

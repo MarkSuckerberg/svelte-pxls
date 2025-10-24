@@ -13,10 +13,10 @@
 	import type { PixelSession } from '$lib/types';
 	import Chat from './Chat.svelte';
 	import ModMenu from './ModMenu.svelte';
+	import ServerInfo from './ServerInfo.svelte';
 	import Template from './Template.svelte';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 	import UserSettings from './UserSettings.svelte';
-	import ServerInfo from './ServerInfo.svelte';
 
 	let {
 		templateData,
@@ -32,7 +32,7 @@
 </script>
 
 <Sidebar.Root side="right" collapsible="offcanvas">
-	<Tabs value="chat" class="h-full w-full">
+	<Tabs value="chat" class="flex h-full w-full">
 		<Sidebar.Header class="h-[5%] flex-row">
 			<div class="w-0">
 				<Sidebar.Trigger
