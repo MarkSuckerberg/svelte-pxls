@@ -289,10 +289,32 @@
 			event.preventDefault();
 		}
 
-		if (editing && event.buttons & 2) {
+		if (!editing) {
+			return;
+		}
+
+		if (event.buttons & 2) {
 			editData.deletePixel(editData.fromScreenEvent(event));
 
 			event.preventDefault();
+		}
+
+		if (event.buttons & 4) {
+			const loc = editData.fromScreenEvent(event);
+
+			const editPixel = editData.getPixel(loc);
+
+			if (editPixel != undefined) {
+				selectedColorIdx = editPixel;
+				return;
+			}
+
+			const backgroundPixel = displayData.getPixel(loc);
+
+			if (backgroundPixel != undefined) {
+				selectedColorIdx = backgroundPixel;
+				return;
+			}
 		}
 	}
 
