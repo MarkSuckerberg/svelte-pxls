@@ -213,7 +213,6 @@
 		</InputGroupAddon>
 		<InputGroupInput
 			type="range"
-			value={templateData.opacity * 100}
 			onchange={(event) => {
 				templateData.opacity = Number(event.currentTarget.value);
 			}}

@@ -299,22 +299,6 @@ export class PixelSocketServer {
 			});
 
 			socket.on('chat', async (message) => {
-				const details = {
-					username: 'Pixels',
-
-					embeds: [
-						{
-							timestamp: new Date(Date.now()).toISOString(),
-							title: 'New chat message',
-							author: {
-								name: data.user.username,
-								icon_url: data.user.Avatar
-							},
-							description: message
-						}
-					]
-				};
-
 				config.webhooks?.chat?.forEach((webhook) => {
 					sendMessage(webhook, {
 						title: 'New Chat Message',
