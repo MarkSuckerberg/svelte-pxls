@@ -9,6 +9,9 @@ interface TemplateSave {
 	resizeDimensions: Dimensions;
 	full: boolean;
 	convert: boolean;
+
+	flipY: boolean;
+	flipX: boolean;
 }
 
 export class TemplateData {
@@ -56,16 +59,18 @@ export class TemplateData {
 			return;
 		}
 
-		const save: TemplateSave = JSON.parse(saveString);
+		const save: Partial<TemplateSave> = JSON.parse(saveString);
 
 		if (!save.inputUrl) {
 			return;
 		}
-		this.resize = save.resize;
-		this.resizeDimensions = save.resizeDimensions;
-		this.full = save.full;
-		this.convert = save.convert;
-		this._offset = save.offset;
+		this.resize = save.resize || this.resize;
+		this.resizeDimensions = save.resizeDimensions || this.resizeDimensions;
+		this.full = save.full || this.full;
+		this.convert = save.convert || this.convert;
+		this._offset = save.offset || this._offset;
+		this.flipX = save.flipX || this.flipX;
+		this.flipY = save.flipY || this.flipY;
 		this.updateTemplate(save.inputUrl);
 	}
 
@@ -80,7 +85,9 @@ export class TemplateData {
 			resize: this.resize,
 			resizeDimensions: this.resizeDimensions,
 			full: this.full,
-			convert: this.convert
+			convert: this.convert,
+			flipX: this.flipX,
+			flipY: this.flipY
 		};
 		localStorage.setItem('template', JSON.stringify(save));
 	}

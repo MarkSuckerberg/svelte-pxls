@@ -1,5 +1,6 @@
 import type { AdapterAccountType } from '@auth/core/adapters';
 import type { UUID } from 'crypto';
+import { SQL, sql } from 'drizzle-orm';
 import {
 	boolean,
 	inet,
@@ -38,6 +39,9 @@ export const users = pgTable('user', {
 	registered: timestamp('registered').notNull().defaultNow(),
 	lastTicked: timestamp('lastTicked').notNull().defaultNow(),
 	pixels: integer('pixels').notNull().default(100),
+	maxPixels: integer('maxPixels')
+		.notNull()
+		.generatedAlwaysAs((): SQL => sql<number>`100 + ${users.placed} / 100`),
 	placed: integer('placed').notNull().default(0),
 	mod: boolean('mod').notNull().default(false)
 });
@@ -111,3 +115,13 @@ export const accounts = pgTable(
 		})
 	]
 );
+
+export const reports = pgTable('reports', {
+	id: serial().primaryKey(),
+	userId,
+	timestamp: timestamp().notNull().defaultNow(),
+	x: integer().notNull(),
+	y: integer().notNull(),
+	reason: text().notNull(),
+	resolved: boolean().notNull().default(false)
+});

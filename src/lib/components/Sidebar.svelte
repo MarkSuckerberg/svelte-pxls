@@ -55,10 +55,7 @@
 				<Chat {client} signedIn={!!session} />
 			</TabsContent>
 			<TabsContent value="template">
-				<Template
-					boardSize={{ width: editData.width, height: editData.height }}
-					{templateData}
-				/>
+				<Template boardSize={editData.size} {templateData} />
 			</TabsContent>
 			<TabsContent value="settings">
 				<UserSettings {client} />
@@ -68,7 +65,7 @@
 			</TabsContent>
 			{#if client.info.mod}
 				<TabsContent value="mod">
-					<ModMenu socket={client.socket} />
+					<ModMenu socket={client.socket} gridSize={editData.size} />
 				</TabsContent>
 			{/if}
 		</div>

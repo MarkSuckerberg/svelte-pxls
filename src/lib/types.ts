@@ -55,6 +55,15 @@ export interface UserSettings {
 	title: string | null;
 }
 
+export interface Report {
+	id: number;
+	timestamp: number;
+	x: number;
+	y: number;
+	reason: string;
+	user: UserInfo;
+}
+
 export type ClientToServerEvents = {
 	place: (pixels: Pixel[], ack: (pixels: Pixel[]) => void) => void;
 	pixelInfo: (location: Coords, ack: (pixel: PixelInfo | null) => void) => void;
@@ -63,6 +72,8 @@ export type ClientToServerEvents = {
 	idInfo: (id: string, ack: (info: LimitedUserInfo | null) => void) => void;
 	usernameInfo: (username: string, ack: (info: LimitedUserInfo | null) => void) => void;
 	settings: (newSettings: UserSettings, ack: () => void) => void;
+	report: (location: Coords, reason: string, ack: (wait?: number) => void) => void;
+	getReports: (ack: (reports: Report[]) => void) => void;
 };
 
 export type InterServerEvents = never;
@@ -96,7 +107,7 @@ export const colorsRGB = colors.map((colorValue) => {
 	const alpha = (colorValue >> 0) & 0xff;
 
 	return { red, green, blue, alpha };
-})
+});
 
 export const colorNames = colorFile.map(({ name, value }) => name);
 
@@ -117,6 +128,15 @@ export function get1DPosition2D(x: number, y: number, width: number) {
 
 export function get1DPosition3D(x: number, y: number, z: number, width: number, depth: number) {
 	return (x % width) + y * width + z * depth;
+}
+
+export function center({ width, height }: Dimensions, { x, y }: Coords): Coords {
+	return { x: width / 2 - x, y: height / 2 - y };
+}
+
+export function linkLocation(size: Dimensions, location: Coords, base?: string | URL) {
+	const centerLoc = center(size, location);
+	return new URL(`/?x=${centerLoc.x}&y=${centerLoc.y}&s=10`, base);
 }
 
 //TODO: make this extend UserInfo

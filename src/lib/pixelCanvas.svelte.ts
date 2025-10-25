@@ -9,6 +9,7 @@ export class PixelCanvas {
 
 	public readonly width: number = $state(500);
 	public readonly height: number = $state(500);
+	public readonly size: Dimensions = $state({ width: 500, height: 500 });
 
 	private _rect: DOMRect | undefined;
 
@@ -19,6 +20,10 @@ export class PixelCanvas {
 		backgroundFill: number | undefined = undefined,
 		options: CanvasRenderingContext2DSettings | undefined = undefined
 	) {
+		this.width = width;
+		this.height = height;
+		this.size = { width, height };
+
 		canvas.width = width;
 		canvas.height = height;
 
@@ -32,8 +37,6 @@ export class PixelCanvas {
 		this.context = getContext;
 		this.context.imageSmoothingEnabled = false;
 
-		this.width = width;
-		this.height = height;
 		this._rect = $state(this.canvas.getBoundingClientRect());
 
 		if (array) {

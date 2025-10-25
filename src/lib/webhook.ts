@@ -5,6 +5,7 @@ export async function sendMessage(
 		| {
 				title: string;
 				timestamp: Date;
+				url?: string;
 				user: { image?: string | null; name: string };
 				message: string;
 		  }
@@ -25,6 +26,7 @@ export async function sendMessage(
 			{
 				timestamp: content.timestamp.toISOString(),
 				title: content.title,
+				url: content.url,
 				author: {
 					name: content.user.name,
 					icon_url: content.user.image

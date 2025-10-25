@@ -6,8 +6,9 @@
 	import Exit from '@lucide/svelte/icons/x';
 	import { slide } from 'svelte/transition';
 	import type { ArrayGrid } from '../arrayGrid';
-	import { colorNames, colors, type Coords } from '../types';
+	import { center, colorNames, colors, type Coords } from '../types';
 	import PixelCount from './PixelCount.svelte';
+	import ReportForm from './ReportForm.svelte';
 	import Button from './ui/button/button.svelte';
 	import { Card, CardContent } from './ui/card';
 	import { Popover } from './ui/popover';
@@ -22,7 +23,6 @@
 		onDrawButton,
 		onClose,
 		scale = 1,
-		center,
 		canvas,
 		client
 	}: {
@@ -31,14 +31,11 @@
 		onClose: () => void;
 		onDrawButton: (event: MouseEvent) => void;
 		scale: number;
-		center: (coords: Coords) => Coords;
 		canvas: HTMLCanvasElement;
 		client: PixelsClient;
 	} = $props();
 
 	let linkCopied: Coords | undefined = $state();
-
-	let progress = $derived((client.info.pixels / client.info.maxPixels) * 100);
 
 	let selectedPixelColor = $derived.by(() => {
 		if (!selectedPixel || !array) {
@@ -51,12 +48,12 @@
 	});
 
 	function onCopy() {
-		if (!selectedPixel) {
+		if (!selectedPixel || !array) {
 			return;
 		}
 
 		linkCopied = selectedPixel;
-		const centerPan = center(selectedPixel);
+		const centerPan = center(array?.size, selectedPixel);
 		const url = new URL(`/?x=${centerPan.x}&y=${centerPan.y}&s=${scale}`).toString();
 		navigator.clipboard.writeText(url);
 	}
@@ -82,6 +79,35 @@
 			anchor.remove();
 			URL.revokeObjectURL(link);
 		});
+	}
+
+	const timeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+	function timeFormat(time: number) {
+		// Get the amount of seconds between the given date and now
+		const deltaSeconds = Math.round((time - Date.now()) / 1000);
+
+		// Array reprsenting one minute, hour, day, week, month, etc in seconds
+		const cutoffs = [60, 3600, 86400, 86400 * 7, 86400 * 30, 86400 * 365, Infinity];
+
+		// Array equivalent to the above but in the string representation of the units
+		const units: Intl.RelativeTimeFormatUnit[] = [
+			'second',
+			'minute',
+			'hour',
+			'day',
+			'week',
+			'month',
+			'year'
+		];
+
+		// Grab the ideal cutoff unit
+		const unitIndex = cutoffs.findIndex((cutoff) => cutoff > Math.abs(deltaSeconds));
+
+		// Get the divisor to divide from the seconds. E.g. if our unit is "day" our divisor
+		// is one day in seconds, so we can divide our seconds by this to get the # of days
+		const divisor = unitIndex ? cutoffs[unitIndex - 1] : 1;
+
+		return timeFormatter.format(Math.floor(deltaSeconds / divisor), units[unitIndex]);
 	}
 </script>
 
@@ -131,15 +157,16 @@
 								</Popover>
 							</li>
 							<li>
-								Time: {info ? new Date(info.time) : ''}
+								Time: {info
+									? `${new Date(info.time).toLocaleString(undefined, { dateStyle: 'long', timeStyle: 'medium' })}, ${timeFormat(info.time)}`
+									: ''}
 							</li>
 						{:else}
 							<li>Unplaced</li>
 						{/if}
 					{/await}
-					<li>
+					<li class="flex *:flex-1">
 						<Button
-							class="w-1/3"
 							onclick={() => {
 								onCopy();
 							}}
@@ -148,7 +175,6 @@
 							<span>{linkCopied === selectedPixel ? 'Copied!' : 'Copy Link'}</span>
 						</Button>
 						<Button
-							class="w-1/3"
 							onclick={() => {
 								onSave();
 							}}
@@ -156,6 +182,7 @@
 							<Save />
 							<span>Save Screenshot</span>
 						</Button>
+						<ReportForm pixel={selectedPixel} {client} />
 					</li>
 				</ul>
 			</CardContent>

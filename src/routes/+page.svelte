@@ -93,11 +93,7 @@
 	}}
 	style:cursor={moving ? 'grabbing' : 'grab'}
 >
-	<div
-		class="canvas-inner"
-		style="filter: drop-shadow(1px 1px 0px red) drop-shadow(-1px -1px 0px red) drop-shadow(1px -1px 0px red) drop-shadow(-1px 1px 0px red) drop-shadow(1px
-		1px 10px black)"
-	>
+	<div class="canvas-inner highlight">
 		<canvas
 			width={data.dimensions.width}
 			height={data.dimensions.width}
@@ -162,5 +158,11 @@
 
 	.display-canvas {
 		background-color: #f8f4f0ff;
+	}
+
+	.highlight {
+		filter: drop-shadow(1px 1px 0px red) drop-shadow(-1px -1px 0px red)
+			drop-shadow(1px -1px 0px red) drop-shadow(-1px 1px 0px red)
+			drop-shadow(1px 1px 10px black);
 	}
 </style>

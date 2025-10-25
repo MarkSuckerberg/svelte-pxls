@@ -19,11 +19,18 @@ export interface LimitedUserInfo {
 
 export const dbUser = {
 	name: users.name,
+	avatar: users.image,
 	placed: users.placed,
 	id: users.id,
-	title: users.title,
-	avatar: users.image,
-	mod: users.mod
+	mod: users.mod,
+	title: users.title
+};
+
+export const fullDBUser = {
+	...dbUser,
+	pixels: users.pixels,
+	maxPixels: users.maxPixels,
+	lastTicked: users.lastTicked
 };
 
 const dbUserInfoQuery = db

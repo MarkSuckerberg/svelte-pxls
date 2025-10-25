@@ -315,6 +315,8 @@
 				selectedColorIdx = backgroundPixel;
 				return;
 			}
+
+			event.preventDefault();
 		}
 	}
 
@@ -413,7 +415,6 @@
 			{selectedPixel}
 			array={displayData.array}
 			{scale}
-			{center}
 			onClose={() => (selectedPixel = undefined)}
 			onDrawButton={() => setEditing(true)}
 			canvas={displayData.canvas}

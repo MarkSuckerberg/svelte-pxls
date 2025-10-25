@@ -2,6 +2,7 @@ import { Auth, createActionURL } from '@auth/core';
 import { ArrayGrid } from './lib/arrayGrid.js';
 import { fromDb, fromFile, fromLegacyFile, toFile } from './lib/server/arrayGrid.server.js';
 import {
+	center,
 	type AuthedSocketData,
 	type ChatMessage,
 	type ClientToServerEvents,
@@ -14,7 +15,7 @@ import {
 import type { ResponseInternal } from '@auth/core/types';
 import type { Session } from '@auth/sveltekit';
 import { type UUID } from 'crypto';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, max, sql } from 'drizzle-orm';
 import type { Server } from 'http';
 import type { Http2SecureServer, Http2Server } from 'http2';
 import type { Server as HTTPSServer } from 'https';
@@ -28,11 +29,14 @@ import {
 	db,
 	pixelMap,
 	pixelPlacements,
+	reports,
 	users
 } from './lib/server/db/index.js';
 import { User } from './lib/server/user.server.js';
-import { dbUser, GetUserInfo, GetUserInfoUsername } from './lib/userinfo.js';
+import { dbUser, fullDBUser, GetUserInfo, GetUserInfoUsername } from './lib/userinfo.js';
 import { sendMessage } from './lib/webhook.js';
+
+const THIRTY_MINUTES = 1000 * 60 * 30;
 
 export class PixelSocketServer {
 	public static async fromFile(
@@ -58,6 +62,8 @@ export class PixelSocketServer {
 			.toArray();
 	}
 
+	private origin: URL;
+
 	public users: Map<string, SocketData> = new Map();
 	public sessions: Map<UUID, Set<Socket<ClientToServerEvents, ServerToClientEvents>>> = new Map();
 
@@ -79,6 +85,20 @@ export class PixelSocketServer {
 			InterServerEvents,
 			SocketData
 		>(server);
+
+		if (process.env.ORIGIN) {
+			this.origin = new URL(process.env.ORIGIN);
+		} else {
+			const address = server.address();
+			if (address !== null) {
+				this.origin =
+					typeof address === 'string'
+						? new URL(address)
+						: new URL(`http://${address?.address}:${address?.port}`);
+			} else {
+				this.origin = new URL('http://localhost:5173');
+			}
+		}
 
 		this.grid = grid;
 
@@ -331,9 +351,94 @@ export class PixelSocketServer {
 				ack();
 			});
 
+			socket.on('report', async (location, reason, ack) => {
+				if (reason.length < 60) {
+					//don't you dare bypass my input validation
+					ack(Number.POSITIVE_INFINITY);
+					return;
+				}
+
+				if (!data.user.mod) {
+					const lastReport = (
+						await db
+							.select({ value: max(reports.timestamp) })
+							.from(reports)
+							.where(eq(reports.userId, data.user.id))
+					).at(0);
+
+					if (
+						lastReport?.value &&
+						Date.now() - lastReport.value.getTime() < THIRTY_MINUTES
+					) {
+						ack(lastReport.value.getTime() + THIRTY_MINUTES);
+						return;
+					}
+				}
+
+				const result = (
+					await db
+						.insert(reports)
+						.values({
+							x: location.x,
+							y: location.y,
+							userId: data.user.id,
+							reason
+						})
+						.returning({ id: reports.id })
+				).at(0)?.id;
+
+				if (!result) {
+					ack(Date.now() + 30000);
+					return;
+				}
+
+				const centerLoc = center(this.grid.size, location);
+				config.webhooks?.admin?.forEach((webhook) => {
+					sendMessage(webhook, {
+						title: 'New report:',
+						url: new URL(
+							`/?x=${centerLoc.x}&y=${centerLoc.y}&s=10`,
+							this.origin
+						).toString(),
+						timestamp: new Date(Date.now()),
+						message: `Report ${result} has been made for the pixel (${location.x}, ${location.y}) with reason:\n\`${reason}\``,
+						user: { name: data.user.username, image: data.user.Avatar }
+					});
+				});
+
+				ack();
+			});
+
 			if (!data.user.mod) {
 				return;
 			}
+
+			socket.on('getReports', async (ack) => {
+				ack(
+					(
+						await db
+							.select({
+								user: fullDBUser,
+								x: reports.x,
+								y: reports.y,
+								timestamp: reports.timestamp,
+								id: reports.id,
+								reason: reports.reason
+							})
+							.from(reports)
+							.innerJoin(users, eq(reports.userId, users.id))
+							.where(eq(reports.resolved, false))
+							.limit(25)
+					).map((input) => ({
+						...input,
+						timestamp: input.timestamp.getTime(),
+						user: {
+							...input.user,
+							lastTicked: input.user.lastTicked.getTime()
+						}
+					}))
+				);
+			});
 
 			socket.on('ban', async (ban, ack) => {
 				const banId = (

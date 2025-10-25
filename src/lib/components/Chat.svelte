@@ -94,13 +94,15 @@
 
 	function time(timestamp: number) {
 		const date = new Date(timestamp);
-		const dateString = date.toLocaleDateString();
+		const dateString = date.toLocaleDateString(undefined, { dateStyle: 'short' });
 
-		if (dateString != new Date(Date.now()).toLocaleDateString()) {
+		if (
+			dateString != new Date(Date.now()).toLocaleDateString(undefined, { dateStyle: 'short' })
+		) {
 			return dateString;
 		}
 
-		return date.toLocaleTimeString();
+		return date.toLocaleTimeString(undefined, { timeStyle: 'short' });
 	}
 
 	let lexer: typeof marked.Lexer.lexInline | undefined = $state();

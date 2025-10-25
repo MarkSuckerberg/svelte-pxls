@@ -50,10 +50,12 @@ export class Int2DArrayHelper {
 
 export class ArrayGrid {
 	readonly array: Uint8Array;
+	readonly size: Dimensions;
 	readonly width: number;
 	readonly height: number;
 
 	public constructor({ width, height }: Dimensions, array: Uint8Array | undefined = undefined) {
+		this.size = { width, height };
 		this.width = width;
 		this.height = height;
 
