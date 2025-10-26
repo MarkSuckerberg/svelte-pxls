@@ -54,13 +54,13 @@
 			<TabsContent value="chat" class="h-full">
 				<Chat {client} signedIn={!!session} />
 			</TabsContent>
-			<TabsContent value="template">
+			<TabsContent value="template" class="h-full">
 				<Template boardSize={editData.size} {templateData} />
 			</TabsContent>
-			<TabsContent value="settings">
+			<TabsContent value="settings" class="h-full">
 				<UserSettings {client} />
 			</TabsContent>
-			<TabsContent value="info">
+			<TabsContent value="info" class="h-full overflow-x-scroll">
 				<ServerInfo />
 			</TabsContent>
 			{#if client.info.mod}

@@ -47,6 +47,13 @@ const dbUserInfoQueryUsername = db
 	.limit(1)
 	.prepare('userinfo_username');
 
+const dbUserInfoQueryUsernameFull = db
+	.select(fullDBUser)
+	.from(users)
+	.where(eq(users.name, sql.placeholder('username')))
+	.limit(1)
+	.prepare('userinfo_full_username');
+
 export async function GetUserInfo(id: string) {
 	const info: LimitedUserInfo | undefined = (await dbUserInfoQuery.execute({ id })).at(0);
 
@@ -59,4 +66,19 @@ export async function GetUserInfoUsername(username: string) {
 	).at(0);
 
 	return info || null;
+}
+
+export async function GetFullUserInfoUsername(username: string) {
+	const info = (await dbUserInfoQueryUsernameFull.execute({ username })).at(0);
+
+	if (info != null) {
+		const formatted: UserInfo = {
+			...info,
+			lastTicked: info.lastTicked.getTime()
+		};
+
+		return formatted;
+	}
+
+	return null;
 }
